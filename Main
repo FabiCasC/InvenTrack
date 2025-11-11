@@ -1,0 +1,110 @@
+package com.inventario.ui;
+
+import com.inventario.controller.InventoryController;
+import com.inventario.model.Product;
+import com.inventario.model.Movement;
+// Si dejaste LE en package original, usa: import pvt.notariacorvetto.biblioteca.LE;
+import com.inventario.util.LE; // o pvt.notariacorvetto.biblioteca.LE
+
+import java.util.List;
+
+public class MainConsole {
+
+    private static InventoryController controller = new InventoryController();
+
+    public static void main(String[] args) {
+        while (true) {
+            char opt = LE.leerChar(
+                "Inventario - Menú:\\n" +
+                "a) Agregar producto\\n" +
+                "b) Listar productos\\n" +
+                "c) Registrar entrada\\n" +
+                "d) Registrar salida\\n" +
+                "e) Salir\\n\\n" +
+                "Ingrese opción (a-e):"
+            );
+
+            switch (opt) {
+                case 'a':
+                case 'A':
+                    agregarProducto();
+                    break;
+                case 'b':
+                case 'B':
+                    listarProductos();
+                    break;
+                case 'c':
+                case 'C':
+                    registrarEntrada();
+                    break;
+                case 'd':
+                case 'D':
+                    registrarSalida();
+                    break;
+                case 'e':
+                case 'E':
+                    LE.mostrarInformacion("Saliendo...");
+                    return;
+                default:
+                    LE.mostrarError("Opción inválida");
+            }
+        }
+    }
+
+    private static void agregarProducto() {
+        try {
+            String nombre = LE.leerString("Nombre del producto:");
+            String tipo = LE.leerString("Tipo (perecible / no_perecible):");
+            int cantidad = LE.leerInt("Cantidad inicial:");
+            int stockMin = LE.leerInt("Stock mínimo:");
+            String unidad = LE.leerString("Unidad (ej: kg, u):");
+            double precio = LE.leerDouble("Precio unitario:");
+            Product p = new Product(0, nombre, tipo, cantidad, stockMin, unidad, precio);
+            controller.addProduct(p);
+            LE.mostrarInformacion("Producto agregado correctamente.");
+        } catch (Exception ex) {
+            LE.mostrarError("Error al agregar producto: " + ex.getMessage());
+        }
+    }
+
+    private static void listarProductos(){
+        try {
+            List<Product> lista = controller.listProducts();
+            if (lista.isEmpty()) {
+                LE.mostrarInformacion("No hay productos registrados.");
+                return;
+            }
+            StringBuilder sb = new StringBuilder();
+            for (Product p : lista) sb.append(p.toString()).append("\\n");
+            LE.mostrarResultado(sb.toString());
+        } catch (Exception ex) {
+            LE.mostrarError("Error: " + ex.getMessage());
+        }
+    }
+
+    private static void registrarEntrada(){
+        try {
+            int idProd = LE.leerInt("ID del producto (ver lista):");
+            int cant = LE.leerInt("Cantidad a ingresar:");
+            String detalle = LE.leerString("Detalle (opcional):");
+            Movement m = new Movement(idProd, "entrada", cant, detalle);
+            controller.registrarMovimiento(m);
+            LE.mostrarInformacion("Entrada registrada.");
+        } catch (Exception ex) {
+            LE.mostrarError("Error: " + ex.getMessage());
+        }
+    }
+
+    private static void registrarSalida(){
+        try {
+            int idProd = LE.leerInt("ID del producto (ver lista):");
+            int cant = LE.leerInt("Cantidad a retirar:");
+            String detalle = LE.leerString("Detalle (opcional):");
+            Movement m = new Movement(idProd, "salida", cant, detalle);
+            controller.registrarMovimiento(m);
+            LE.mostrarInformacion("Salida registrada.");
+        } catch (Exception ex) {
+            LE.mostrarError("Error: " + ex.getMessage());
+        }
+    }
+}
