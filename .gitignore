@@ -1,0 +1,44 @@
+# ===========================
+# ARCHIVOS DE FIREBASE (MUY IMPORTANTE)
+# ===========================
+src/app/assets/firebase/firebase-credentials.json
+**/firebase-credentials.json
+*.json
+
+# Puedes permitir otros .json agregando excepciones
+# !src/app/assets/config.json
+
+
+# ===========================
+# JAVA / MAVEN
+# ===========================
+target/
+*.class
+*.log
+
+# ===========================
+# IDEs (NetBeans, IntelliJ, VSCode)
+# ===========================
+.nb-gradle/
+nbproject/private/
+build/
+dist/
+out/
+*.iml
+
+# Configuración local del IDE
+.idea/
+.vscode/
+
+# ===========================
+# SO Basura del sistema operativo
+# ===========================
+.DS_Store
+Thumbs.db
+
+# ===========================
+# ARCHIVOS TEMPORALES
+# ===========================
+*.tmp
+*.bak
+*.swp
