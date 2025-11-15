@@ -1,7 +1,6 @@
 # ===========================
 # ARCHIVOS DE FIREBASE (MUY IMPORTANTE)
 # ===========================
-src/app/assets/firebase/firebase-credentials.json
 **/firebase-credentials.json
 *.json
 
