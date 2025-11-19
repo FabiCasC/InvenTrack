@@ -21,14 +21,14 @@ public class FirebaseConfig {
                 firestore = FirestoreClient.getFirestore();
                 return true;  //conexion exitosa
             }
-            return true; // ya estaba en coonexion
+            return true; // ya estaba en conexion
         } catch (IOException e) {
             System.out.println("Error al conectar.. Intente de nuevo");
             return false; // error de conexion
         }
     }
     
-    //metodo para confirmar conexcion en el main
+    //metodo para confirmar conexion en el main
     public static void estado() {
         if (iniciarFirebase()) {
             System.out.println("Firebase conectado eres un crack");
