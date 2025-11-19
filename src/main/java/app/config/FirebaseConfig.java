@@ -37,4 +37,12 @@ public class FirebaseConfig {
         }
     }
     
+    
+    public static Firestore getFirestore() {
+        if (firestore == null) {
+            iniciarFirebase();
+        }
+        return firestore;
+    }
+    
 }
