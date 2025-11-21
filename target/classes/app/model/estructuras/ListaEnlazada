@@ -1,0 +1,175 @@
+public class ListaEnlazada {
+
+
+
+    // Clase interna Nodo
+
+    class Nodo {
+
+        int dato;
+
+        Nodo siguiente;
+
+
+
+        public Nodo(int dato) {
+
+            this.dato = dato;
+
+            this.siguiente = null;
+
+        }
+
+    }
+
+
+
+    private Nodo inicio;
+
+
+
+    public ListaEnlazada() {
+
+        inicio = null;
+
+    }
+
+
+
+    // ----------------------------------
+
+    // MÉTODO: AGREGAR (al final)
+
+    // ----------------------------------
+
+    public void agregar(int dato) {
+
+        Nodo nuevo = new Nodo(dato);
+
+
+
+        if (inicio == null) {
+
+            inicio = nuevo;
+
+            System.out.println("Agregado: " + dato);
+
+            return;
+
+        }
+
+
+
+        Nodo aux = inicio;
+
+        while (aux.siguiente != null) {
+
+            aux = aux.siguiente;
+
+        }
+
+
+
+        aux.siguiente = nuevo;
+
+        System.out.println("Agregado: " + dato);
+
+    }
+
+
+
+    // ----------------------------------
+
+    // MÉTODO: ELIMINAR (por valor)
+
+    // ----------------------------------
+
+    public void eliminar(int valor) {
+
+        if (inicio == null) {
+
+            System.out.println("La lista está vacía.");
+
+            return;
+
+        }
+
+
+
+        // eliminar al inicio
+
+        if (inicio.dato == valor) {
+
+            inicio = inicio.siguiente;
+
+            System.out.println("Eliminado: " + valor);
+
+            return;
+
+        }
+
+
+
+        // buscar el nodo anterior al que se quiere eliminar
+
+        Nodo aux = inicio;
+
+        while (aux.siguiente != null && aux.siguiente.dato != valor) {
+
+            aux = aux.siguiente;
+
+        }
+
+
+
+        if (aux.siguiente == null) {
+
+            System.out.println("El dato no existe en la lista.");
+
+        } else {
+
+            aux.siguiente = aux.siguiente.siguiente;
+
+            System.out.println("Eliminado: " + valor);
+
+        }
+
+    }
+
+
+
+    // ----------------------------------
+
+    // MÉTODO: RECORRER (mostrar)
+
+    // ----------------------------------
+
+    public void recorrer() {
+
+        if (inicio == null) {
+
+            System.out.println("La lista está vacía.");
+
+            return;
+
+        }
+
+
+
+        Nodo aux = inicio;
+
+        System.out.print("Lista: ");
+
+        while (aux != null) {
+
+            System.out.print(aux.dato + " ");
+
+            aux = aux.siguiente;
+
+        }
+
+        System.out.println();
+
+    }
+
+}
