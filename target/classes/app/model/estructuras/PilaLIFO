@@ -1,0 +1,137 @@
+public class PilaLIFO {
+
+
+
+    // Clase interna Nodo
+
+    class Nodo {
+
+        int dato;
+
+        Nodo siguiente;
+
+
+
+        public Nodo(int dato) {
+
+            this.dato = dato;
+
+            this.siguiente = null;
+
+        }
+
+    }
+
+
+
+    private Nodo tope;  // Representa el último elemento agregado
+
+
+
+    public PilaLIFO() {
+
+        tope = null;
+
+    }
+
+
+
+    // -------------------------------
+
+    // MÉTODO: APILAR (Push)
+
+    // -------------------------------
+
+    public void apilar(int dato) {
+
+        Nodo nuevo = new Nodo(dato);
+
+        nuevo.siguiente = tope;  // el nuevo apunta al anterior tope
+
+        tope = nuevo;            // nuevo se convierte en el tope
+
+        System.out.println("Apilado: " + dato);
+
+    }
+
+
+
+    // -------------------------------
+
+    // MÉTODO: DESAPILAR (Pop)
+
+    // -------------------------------
+
+    public int desapilar() {
+
+        if (pilaVacia()) {
+
+            System.out.println("La pila está vacía.");
+
+            return -1; // o lanzar excepción
+
+        }
+
+
+
+        int dato = tope.dato;
+
+        tope = tope.siguiente;  // mover el tope al siguiente nodo
+
+        System.out.println("Desapilado: " + dato);
+
+        return dato;
+
+    }
+
+
+
+    // -------------------------------
+
+    // MÉTODO: VERIFICAR SI ESTÁ VACÍA
+
+    // -------------------------------
+
+    public boolean pilaVacia() {
+
+        return tope == null;
+
+    }
+
+
+
+    // -------------------------------
+
+    // MÉTODO: MOSTRAR
+
+    // -------------------------------
+
+    public void mostrar() {
+
+        if (pilaVacia()) {
+
+            System.out.println("La pila está vacía.");
+
+            return;
+
+        }
+
+
+
+        Nodo aux = tope;
+
+        System.out.print("Pila (tope -> fondo): ");
+
+        while (aux != null) {
+
+            System.out.print(aux.dato + " ");
+
+            aux = aux.siguiente;
+
+        }
+
+        System.out.println();
+
+    }
+
+}
