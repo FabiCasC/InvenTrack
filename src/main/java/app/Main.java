@@ -10,7 +10,7 @@ import app.service.UsuarioService;
 import java.util.Scanner;
 
 public class Main {
-    //metodos de prueba
+    //metodos de prueba en menu
     public static void main(String[] args) {
         FirebaseConfig.estado();
         Scanner sc = new Scanner(System.in);
