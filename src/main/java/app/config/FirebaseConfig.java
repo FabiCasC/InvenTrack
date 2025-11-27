@@ -15,7 +15,7 @@ public class FirebaseConfig {
     public static boolean iniciarFirebase() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                FileInputStream credencial = new FileInputStream("src/main/java/assets/firabase/firebase-credentials.json");
+                FileInputStream credencial = new FileInputStream("src/main/resources/assets/firebase/firebase-credentials.json");
                 FirebaseOptions opciones = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(credencial)).build();
                 FirebaseApp.initializeApp(opciones);
                 firestore = FirestoreClient.getFirestore();
