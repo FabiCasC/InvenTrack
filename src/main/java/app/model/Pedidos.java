@@ -7,6 +7,7 @@ import java.util.Date;
 public class Pedidos {
     private String pedidoId;
     private String productoId;
+    private String cliente;
     private int cantidadSolicitada;
     private String estado;
     private Date fecha;
@@ -14,14 +15,24 @@ public class Pedidos {
     public Pedidos() {
     }
 
-    public Pedidos(String pedidoId, String productoId, int cantidadSolicitada, String estado, Date fecha) {
+    public Pedidos(String pedidoId, String productoId, String cliente, int cantidadSolicitada, String estado, Date fecha) {
         this.pedidoId = pedidoId;
         this.productoId = productoId;
+        this.cliente = cliente;
         this.cantidadSolicitada = cantidadSolicitada;
         this.estado = estado;
         this.fecha = fecha;
     }
 
+     
+     public String getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(String cliente) {
+        this.cliente = cliente;
+    }
+    
     public Date getFecha() {
         return fecha;
     }
@@ -66,6 +77,8 @@ public class Pedidos {
     public String toString() {
         return "Pedidos{" + "pedidoId=" + pedidoId + ", productoId=" + productoId + ", cantidadSolicitada=" + cantidadSolicitada + ", estado=" + estado + ", fecha=" + fecha + '}';
     }
+
+   
     
     
 }
