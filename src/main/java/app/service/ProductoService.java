@@ -2,7 +2,10 @@ package app.service;
 
 import app.model.Lotes;
 import app.model.Productos;
+import app.repository.ProductoRepository;
+import app.repository.ProveedorRepository;
 import com.google.cloud.firestore.DocumentSnapshot;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
@@ -11,34 +14,26 @@ import java.util.Date;
 
 public class ProductoService {
     private final Firestore db;
+    private final ProductoRepository productoRepository;
+    private final ProveedorRepository proveedorRepository;
     private final String COLLECTION_PRODUCTOS = "Productos";
     private final String COLLECTION_LOTES = "Lotes";
-    private final String COLLECTION_PROVEEDORES = "Proveedores";
 
     public ProductoService() {
         this.db = FirestoreClient.getFirestore();
+        this.productoRepository = new ProductoRepository();
+        this.proveedorRepository = new ProveedorRepository();
     }
     
     //registro con validaciones
     public Productos registrarProducto(Productos producto, Lotes loteInicial) throws ExecutionException, InterruptedException {
         validarProducto(producto);
-        if (!existeProveedor(producto.getProveedorId())) { //verificar que el proveedor exista en bd
+        if (!proveedorRepository.existsById(producto.getProveedorId())) {
             throw new IllegalArgumentException("El proveedor con ID " + producto.getProveedorId() + " no existe. Debe registrarlo primero.");
         }
-        //generar un id para el producto
-        if (producto.getProductoId() == null || producto.getProductoId().trim().isEmpty()) {
-            producto.setProductoId(generarProductoId());
-        } else {
-            //verificar que el id no se repita
-            if (existeProducto(producto.getProductoId())) {
-                throw new IllegalArgumentException("Ya existe un producto con el ID: " + producto.getProductoId());
-            }
-        }
-        //guardar datos en firebase
-        db.collection(COLLECTION_PRODUCTOS)
-                .document(producto.getProductoId())
-                .set(producto)
-                .get();
+        
+        // Guardar usando repository
+        productoRepository.save(producto);
 
         //validar si tienen algun tipo de metodo de rotacion
         if (tieneMetodoRotacion(producto.getMetodo_rotacion()) && loteInicial != null) {
@@ -75,20 +70,53 @@ public class ProductoService {
         }
     }
 
-    private boolean existeProducto(String productoId) throws ExecutionException, InterruptedException {
-        DocumentSnapshot document = db.collection(COLLECTION_PRODUCTOS)
-                .document(productoId)
-                .get()
-                .get();
-        return document.exists();
+    /**
+     * Obtiene un producto por su ID
+     */
+    public Productos obtenerProducto(String productoId) throws ExecutionException, InterruptedException {
+        Productos producto = productoRepository.findById(productoId);
+        if (producto == null) {
+            throw new IllegalArgumentException("El producto no existe: " + productoId);
+        }
+        return producto;
     }
 
-    private boolean existeProveedor(String proveedorId) throws ExecutionException, InterruptedException {
-        DocumentSnapshot document = db.collection(COLLECTION_PROVEEDORES)
-                .document(proveedorId)
-                .get()
-                .get();
-        return document.exists();
+    /**
+     * Lista todos los productos
+     */
+    public List<Productos> listarProductos() throws ExecutionException, InterruptedException {
+        return productoRepository.findAll();
+    }
+
+    /**
+     * Lista productos por proveedor
+     */
+    public List<Productos> listarProductosPorProveedor(String proveedorId) throws ExecutionException, InterruptedException {
+        return productoRepository.findByProveedorId(proveedorId);
+    }
+
+    /**
+     * Actualiza un producto
+     */
+    public void actualizarProducto(Productos producto) throws ExecutionException, InterruptedException {
+        validarProducto(producto);
+        
+        if (!productoRepository.existsById(producto.getProductoId())) {
+            throw new IllegalArgumentException("El producto no existe: " + producto.getProductoId());
+        }
+        
+        productoRepository.update(producto);
+    }
+
+    /**
+     * Elimina un producto
+     */
+    public void eliminarProducto(String productoId) throws ExecutionException, InterruptedException {
+        if (!productoRepository.existsById(productoId)) {
+            throw new IllegalArgumentException("El producto no existe: " + productoId);
+        }
+        
+        productoRepository.delete(productoId);
     }
 
     private boolean tieneMetodoRotacion(String metodoRotacion) {

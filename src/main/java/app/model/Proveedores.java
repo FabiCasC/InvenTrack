@@ -1,7 +1,8 @@
-
 package app.model;
 
-
+/**
+ * Modelo base para Proveedores
+ */
 public class Proveedores {
     private String proveedorId;
     private String nombre;

@@ -5,9 +5,13 @@ import app.model.Pedidos;
 import app.model.Productos;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.google.firebase.cloud.FirestoreClient;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -121,6 +125,100 @@ public class PedidoService {
                 .get()
                 .get();
         return doc.exists();
+    }
+    
+    /**
+     * Actualiza el estado de un pedido
+     */
+    public void actualizarEstado(String pedidoId, String nuevoEstado) throws ExecutionException, InterruptedException {
+        if (!existePedido(pedidoId)) {
+            throw new IllegalArgumentException("El pedido no existe: " + pedidoId);
+        }
+        
+        db.collection(COLLECTION_PEDIDOS)
+                .document(pedidoId)
+                .update("estado", nuevoEstado)
+                .get();
+    }
+    
+    /**
+     * Obtiene un pedido por su ID
+     */
+    public Pedidos obtenerPedido(String pedidoId) throws ExecutionException, InterruptedException {
+        DocumentSnapshot doc = db.collection(COLLECTION_PEDIDOS)
+                .document(pedidoId)
+                .get()
+                .get();
+        
+        if (!doc.exists()) {
+            throw new IllegalArgumentException("El pedido no existe: " + pedidoId);
+        }
+        
+        Pedidos pedido = doc.toObject(Pedidos.class);
+        if (pedido != null) {
+            pedido.setPedidoId(doc.getId());
+        }
+        return pedido;
+    }
+    
+    /**
+     * Lista todos los pedidos
+     */
+    public List<Pedidos> listarPedidos() throws ExecutionException, InterruptedException {
+        List<Pedidos> pedidos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_PEDIDOS).get().get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Pedidos pedido = doc.toObject(Pedidos.class);
+            if (pedido != null) {
+                pedido.setPedidoId(doc.getId());
+                pedidos.add(pedido);
+            }
+        }
+        
+        return pedidos;
+    }
+    
+    /**
+     * Lista pedidos por producto
+     */
+    public List<Pedidos> listarPedidosPorProducto(String productoId) throws ExecutionException, InterruptedException {
+        List<Pedidos> pedidos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_PEDIDOS)
+                .whereEqualTo("productoId", productoId)
+                .get()
+                .get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Pedidos pedido = doc.toObject(Pedidos.class);
+            if (pedido != null) {
+                pedido.setPedidoId(doc.getId());
+                pedidos.add(pedido);
+            }
+        }
+        
+        return pedidos;
+    }
+    
+    /**
+     * Lista pedidos por estado
+     */
+    public List<Pedidos> listarPedidosPorEstado(String estado) throws ExecutionException, InterruptedException {
+        List<Pedidos> pedidos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_PEDIDOS)
+                .whereEqualTo("estado", estado)
+                .get()
+                .get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Pedidos pedido = doc.toObject(Pedidos.class);
+            if (pedido != null) {
+                pedido.setPedidoId(doc.getId());
+                pedidos.add(pedido);
+            }
+        }
+        
+        return pedidos;
     }
     
 }

@@ -287,5 +287,107 @@ public class MovimientoService {
                 .get();
         return doc.exists();
     }
+    
+    /**
+     * Obtiene un movimiento por su ID
+     */
+    public Movimientos obtenerMovimiento(String movimientoId) throws ExecutionException, InterruptedException {
+        DocumentSnapshot doc = db.collection(COLLECTION_MOVIMIENTOS)
+                .document(movimientoId)
+                .get()
+                .get();
+        
+        if (!doc.exists()) {
+            throw new IllegalArgumentException("El movimiento no existe: " + movimientoId);
+        }
+        
+        Movimientos movimiento = doc.toObject(Movimientos.class);
+        if (movimiento != null) {
+            movimiento.setMovimientoId(doc.getId());
+        }
+        return movimiento;
+    }
+    
+    /**
+     * Lista todos los movimientos
+     */
+    public List<Movimientos> listarMovimientos() throws ExecutionException, InterruptedException {
+        List<Movimientos> movimientos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_MOVIMIENTOS).get().get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Movimientos movimiento = doc.toObject(Movimientos.class);
+            if (movimiento != null) {
+                movimiento.setMovimientoId(doc.getId());
+                movimientos.add(movimiento);
+            }
+        }
+        
+        return movimientos;
+    }
+    
+    /**
+     * Lista movimientos por producto
+     */
+    public List<Movimientos> listarMovimientosPorProducto(String productoId) throws ExecutionException, InterruptedException {
+        List<Movimientos> movimientos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_MOVIMIENTOS)
+                .whereEqualTo("productoId", productoId)
+                .get()
+                .get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Movimientos movimiento = doc.toObject(Movimientos.class);
+            if (movimiento != null) {
+                movimiento.setMovimientoId(doc.getId());
+                movimientos.add(movimiento);
+            }
+        }
+        
+        return movimientos;
+    }
+    
+    /**
+     * Lista movimientos por rango de fechas
+     */
+    public List<Movimientos> listarMovimientosPorFechas(Date fechaInicio, Date fechaFin) throws ExecutionException, InterruptedException {
+        List<Movimientos> movimientos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_MOVIMIENTOS)
+                .whereGreaterThanOrEqualTo("fecha", fechaInicio)
+                .whereLessThanOrEqualTo("fecha", fechaFin)
+                .get()
+                .get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Movimientos movimiento = doc.toObject(Movimientos.class);
+            if (movimiento != null) {
+                movimiento.setMovimientoId(doc.getId());
+                movimientos.add(movimiento);
+            }
+        }
+        
+        return movimientos;
+    }
+    
+    /**
+     * Lista movimientos por tipo
+     */
+    public List<Movimientos> listarMovimientosPorTipo(String tipoMovimiento) throws ExecutionException, InterruptedException {
+        List<Movimientos> movimientos = new ArrayList<>();
+        QuerySnapshot snapshot = db.collection(COLLECTION_MOVIMIENTOS)
+                .whereEqualTo("tipo_movimiento", tipoMovimiento)
+                .get()
+                .get();
+        
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Movimientos movimiento = doc.toObject(Movimientos.class);
+            if (movimiento != null) {
+                movimiento.setMovimientoId(doc.getId());
+                movimientos.add(movimiento);
+            }
+        }
+        
+        return movimientos;
+    }
    
 }

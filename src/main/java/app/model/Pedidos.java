@@ -1,9 +1,11 @@
-
 package app.model;
 
 import java.util.Date;
 
-
+/**
+ * Modelo base para Pedidos
+ * RF5.1 - Datos requeridos: productos, cantidades, estado
+ */
 public class Pedidos {
     private String pedidoId;
     private String productoId;

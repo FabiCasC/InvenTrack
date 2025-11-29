@@ -1,7 +1,9 @@
-
 package app.model;
 
-
+/**
+ * Modelo base para Usuarios
+ * RF1.1 - Datos mínimos requeridos: correo, contraseña
+ */
 public class Usuarios {
     private String usuarioId;
     private String nombre;

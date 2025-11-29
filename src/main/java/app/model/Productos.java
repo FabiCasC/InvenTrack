@@ -1,19 +1,26 @@
 package app.model;
 
+import java.util.Date;
+
+/**
+ * Modelo base para Productos
+ * RF2.1 - Datos mínimos requeridos: id, nombre, categoría, stock actual, proveedor, fecha de ingreso
+ */
 public class Productos {
     private String productoId;
     private String nombre;
-    private String tipo;
+    private String tipo; // categoría: perecible / no perecible
     private String metodo_rotacion;
     private int stock_actual;
     private int stock_minimo;
     private int stock_maximo;
     private String proveedorId;
+    private Date fechaIngreso;
 
     public Productos() {
     }
 
-    public Productos(String productoId, String nombre, String tipo, String metodo_rotacion, int stock_actual, int stock_minimo, int stock_maximo, String proveedorId) {
+    public Productos(String productoId, String nombre, String tipo, String metodo_rotacion, int stock_actual, int stock_minimo, int stock_maximo, String proveedorId, Date fechaIngreso) {
         this.productoId = productoId;
         this.nombre = nombre;
         this.tipo = tipo;
@@ -22,6 +29,7 @@ public class Productos {
         this.stock_minimo = stock_minimo;
         this.stock_maximo = stock_maximo;
         this.proveedorId = proveedorId;
+        this.fechaIngreso = fechaIngreso;
     }
 
     public String getProveedorId() {
@@ -88,9 +96,17 @@ public class Productos {
         this.stock_maximo = stock_maximo;
     }
 
+    public Date getFechaIngreso() {
+        return fechaIngreso;
+    }
+
+    public void setFechaIngreso(Date fechaIngreso) {
+        this.fechaIngreso = fechaIngreso;
+    }
+
     @Override
     public String toString() {
-        return "Productos{" + "productoId=" + productoId + ", nombre=" + nombre + ", tipo=" + tipo + ", metodo_rotacion=" + metodo_rotacion + ", stock_actual=" + stock_actual + ", stock_minimo=" + stock_minimo + ", stock_maximo=" + stock_maximo + ", proveedorId=" + proveedorId + '}';
+        return "Productos{" + "productoId=" + productoId + ", nombre=" + nombre + ", tipo=" + tipo + ", metodo_rotacion=" + metodo_rotacion + ", stock_actual=" + stock_actual + ", stock_minimo=" + stock_minimo + ", stock_maximo=" + stock_maximo + ", proveedorId=" + proveedorId + ", fechaIngreso=" + fechaIngreso + '}';
     }
     
     

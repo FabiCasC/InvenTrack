@@ -1,25 +1,30 @@
-
 package app.model;
 
 import java.util.Date;
 
+/**
+ * Modelo base para Movimientos de Inventario
+ * RF3.1, RF3.2, RF3.3 - Datos requeridos: tipo, fecha, cantidad, usuario
+ */
 public class Movimientos {
     private String movimientoId;
     private String productoId;
-    private String tipo_movimiento;
+    private String tipo_movimiento; // entrada / salida
     private int cantidad;
     private Date fecha;
+    private String usuarioId; // RF3.3 - usuario que realizó el movimiento
     private String algoritmo;
 
     public Movimientos() {
     }
 
-    public Movimientos(String movimientoId, String productoId, String tipo_movimiento, int cantidad, Date fecha, String algoritmo) {
+    public Movimientos(String movimientoId, String productoId, String tipo_movimiento, int cantidad, Date fecha, String usuarioId, String algoritmo) {
         this.movimientoId = movimientoId;
         this.productoId = productoId;
         this.tipo_movimiento = tipo_movimiento;
         this.cantidad = cantidad;
         this.fecha = fecha;
+        this.usuarioId = usuarioId;
         this.algoritmo = algoritmo;
     }
 
@@ -71,9 +76,17 @@ public class Movimientos {
         this.fecha = fecha;
     }
 
+    public String getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(String usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
     @Override
     public String toString() {
-        return "Movimientos{" + "movimientoId=" + movimientoId + ", productoId=" + productoId + ", tipo_movimiento=" + tipo_movimiento + ", cantidad=" + cantidad + ", fecha=" + fecha + ", algoritmo=" + algoritmo + '}';
+        return "Movimientos{" + "movimientoId=" + movimientoId + ", productoId=" + productoId + ", tipo_movimiento=" + tipo_movimiento + ", cantidad=" + cantidad + ", fecha=" + fecha + ", usuarioId=" + usuarioId + ", algoritmo=" + algoritmo + '}';
     }
     
 }
