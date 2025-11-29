@@ -147,7 +147,7 @@ public class ProductoService {
         do {
             totalProductos++;
             nuevoId = String.format("PROD%03d", totalProductos);
-        } while (existeProducto(nuevoId));
+        } while (productoRepository.existsById(nuevoId));
 
         return nuevoId;
     }
