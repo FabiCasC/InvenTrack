@@ -78,7 +78,15 @@ public class LoginView extends javax.swing.JFrame {
         jLabel3.setForeground(new java.awt.Color(51, 51, 51));
         jLabel3.setText("INVENTRACK");
 
-        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/icons/inventario.png"))); // NOI18N
+        // Cargar imagen de inventario
+        java.net.URL imgUrl = getClass().getResource("/assets/icons/inventario.png");
+        if (imgUrl != null) {
+            jLabel5.setIcon(new javax.swing.ImageIcon(imgUrl));
+        } else {
+            // Si no se encuentra la imagen, usar un icono por defecto o dejar vacío
+            System.out.println("Advertencia: No se encontró la imagen /assets/icons/inventario.png");
+            jLabel5.setIcon(null);
+        }
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(51, 51, 51));

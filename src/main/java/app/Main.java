@@ -1,24 +1,26 @@
 package app;
 
 import app.config.FirebaseConfig;
-import app.service.ReporteService;
-
-
+import app.view.LoginView;
 
 public class Main {
 
-    //metodos de prueba en menu
     public static void main(String[] args) {
         try {
+            // Inicializar Firebase
             FirebaseConfig.iniciarFirebase();
-            ReporteService reporteService = new ReporteService();
-            reporteService.generarReportes();
+            
+            // Mostrar la ventana de login
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    new LoginView().setVisible(true);
+                }
+            });
 
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
             e.printStackTrace();
         }
-        
     }
 }
 
