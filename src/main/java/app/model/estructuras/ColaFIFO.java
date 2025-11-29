@@ -26,7 +26,21 @@ public class ColaFIFO {
      * @param lote El lote a encolar
      */
     public void encolar(Lotes lote) {
-        // TODO: Implementar lógica de encolar
+        if (lote == null) {
+            throw new IllegalArgumentException("No se puede encolar un lote nulo");
+        }
+        
+        NodoCola nuevoNodo = new NodoCola(lote);
+        
+        if (estaVacia()) {
+            frente = nuevoNodo;
+            finalCola = nuevoNodo;
+        } else {
+            finalCola.setSiguiente(nuevoNodo);
+            finalCola = nuevoNodo;
+        }
+        
+        tamaño++;
     }
     
     /**
@@ -34,8 +48,19 @@ public class ColaFIFO {
      * @return El lote desencolado, o null si la cola está vacía
      */
     public Lotes desencolar() {
-        // TODO: Implementar lógica de desencolar
-        return null;
+        if (estaVacia()) {
+            return null;
+        }
+        
+        Lotes loteDesencolado = frente.getLote();
+        frente = frente.getSiguiente();
+        
+        if (frente == null) {
+            finalCola = null;
+        }
+        
+        tamaño--;
+        return loteDesencolado;
     }
     
     /**
@@ -59,15 +84,19 @@ public class ColaFIFO {
      * @return El lote del frente, o null si la cola está vacía
      */
     public Lotes verFrente() {
-        // TODO: Implementar visualización del frente
-        return null;
+        if (estaVacia()) {
+            return null;
+        }
+        return frente.getLote();
     }
     
     /**
      * Vacía la cola completamente
      */
     public void vaciar() {
-        // TODO: Implementar vaciado de la cola
+        frente = null;
+        finalCola = null;
+        tamaño = 0;
     }
     
     /**
@@ -76,7 +105,18 @@ public class ColaFIFO {
      * @return true si existe, false en caso contrario
      */
     public boolean contiene(String loteId) {
-        // TODO: Implementar búsqueda de lote
+        if (loteId == null || estaVacia()) {
+            return false;
+        }
+        
+        NodoCola actual = frente;
+        while (actual != null) {
+            if (actual.getLote() != null && loteId.equals(actual.getLote().getLoteId())) {
+                return true;
+            }
+            actual = actual.getSiguiente();
+        }
+        
         return false;
     }
 }

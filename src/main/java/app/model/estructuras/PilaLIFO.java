@@ -24,7 +24,13 @@ public class PilaLIFO {
      * @param lote El lote a apilar
      */
     public void push(Lotes lote) {
-        // TODO: Implementar lógica de push
+        if (lote == null) {
+            throw new IllegalArgumentException("No se puede apilar un lote nulo");
+        }
+        
+        NodoPila nuevoNodo = new NodoPila(lote, cima);
+        cima = nuevoNodo;
+        tamaño++;
     }
     
     /**
@@ -32,8 +38,15 @@ public class PilaLIFO {
      * @return El lote desapilado, o null si la pila está vacía
      */
     public Lotes pop() {
-        // TODO: Implementar lógica de pop
-        return null;
+        if (estaVacia()) {
+            return null;
+        }
+        
+        Lotes loteDesapilado = cima.getLote();
+        cima = cima.getSiguiente();
+        tamaño--;
+        
+        return loteDesapilado;
     }
     
     /**
@@ -57,15 +70,18 @@ public class PilaLIFO {
      * @return El lote de la cima, o null si la pila está vacía
      */
     public Lotes verCima() {
-        // TODO: Implementar visualización de la cima
-        return null;
+        if (estaVacia()) {
+            return null;
+        }
+        return cima.getLote();
     }
     
     /**
      * Vacía la pila completamente
      */
     public void vaciar() {
-        // TODO: Implementar vaciado de la pila
+        cima = null;
+        tamaño = 0;
     }
     
     /**
@@ -74,7 +90,18 @@ public class PilaLIFO {
      * @return true si existe, false en caso contrario
      */
     public boolean contiene(String loteId) {
-        // TODO: Implementar búsqueda de lote
+        if (loteId == null || estaVacia()) {
+            return false;
+        }
+        
+        NodoPila actual = cima;
+        while (actual != null) {
+            if (actual.getLote() != null && loteId.equals(actual.getLote().getLoteId())) {
+                return true;
+            }
+            actual = actual.getSiguiente();
+        }
+        
         return false;
     }
 }
