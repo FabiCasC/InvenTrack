@@ -1,0 +1,152 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
+ */
+package app.view;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class MovimientoFormInternal extends javax.swing.JInternalFrame {
+
+    public JComboBox<String> comboTipo;
+    public JComboBox<String> comboProducto;
+    public JComboBox<String> comboProveedor;
+
+    public JTextField txtCantidad;
+    public JTextField txtLote;
+    public JTextField txtFecha;
+
+    public JButton btnRegistrar;
+    public JButton btnCancelar;
+
+    public MovimientoFormInternal() {
+
+        setTitle("Nuevo Movimiento");
+        setSize(450, 600);
+        setClosable(true);
+        setIconifiable(true);
+        setResizable(false);
+
+        // PANEL PRINCIPAL
+        JPanel main = new JPanel();
+        main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
+        main.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        //----------------------------------------------------
+        // TÍTULOS — Igual que en ProductoFormInternal
+        //----------------------------------------------------
+        JLabel titulo = new JLabel("Nuevo Movimiento");
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subtitulo = new JLabel("Registra una entrada o salida de inventario");
+        subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitulo.setForeground(new Color(90, 90, 90));
+        subtitulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        main.add(titulo);
+        main.add(subtitulo);
+        main.add(Box.createVerticalStrut(20));
+
+        //----------------------------------------------------
+        // CAMPOS DEL FORMULARIO — MISMO ESTILO VERTICAL
+        //----------------------------------------------------
+        main.add(createLabel("Tipo de Movimiento"));
+        comboTipo = new JComboBox<>(new String[]{"Entrada", "Salida"});
+        comboTipo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        main.add(comboTipo);
+        main.add(Box.createVerticalStrut(15));
+
+        main.add(createLabel("Producto"));
+        comboProducto = new JComboBox<>();
+        comboProducto.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        main.add(comboProducto);
+        main.add(Box.createVerticalStrut(15));
+
+        main.add(createLabel("Cantidad"));
+        txtCantidad = new JTextField();
+        txtCantidad.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        main.add(txtCantidad);
+        main.add(Box.createVerticalStrut(15));
+
+        main.add(createLabel("Número de Lote"));
+        txtLote = new JTextField();
+        txtLote.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        txtLote.putClientProperty("placeholderText", "Ej: LF-2025-001");
+        main.add(txtLote);
+        main.add(Box.createVerticalStrut(15));
+
+        main.add(createLabel("Fecha"));
+        txtFecha = new JTextField();
+        txtFecha.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        txtFecha.putClientProperty("placeholderText", "Ej: 2025-11-14");
+        main.add(txtFecha);
+        main.add(Box.createVerticalStrut(15));
+
+        main.add(createLabel("Proveedor / Destino"));
+        comboProveedor = new JComboBox<>();
+        comboProveedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        main.add(comboProveedor);
+        main.add(Box.createVerticalStrut(20));
+
+        //----------------------------------------------------
+        // BOTONES — MISMO ESTILO QUE PRODUCTOFORMINTERNAL
+        //----------------------------------------------------
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        botones.setOpaque(false);
+
+        btnCancelar = new JButton("Cancelar");
+        btnCancelar.setBackground(new Color(200, 200, 200));
+        btnCancelar.setFocusPainted(false);
+
+        btnRegistrar = new JButton("Registrar");
+        btnRegistrar.setBackground(Color.BLACK);
+        btnRegistrar.setForeground(Color.WHITE);
+        btnRegistrar.setFocusPainted(false);
+
+        botones.add(btnCancelar);
+        botones.add(btnRegistrar);
+
+        main.add(botones);
+
+        add(main);
+    }
+
+    //----------------------------------------------------
+    // LABEL BONITO — MISMA FUNCIÓN DEL OTRO FORM
+    //----------------------------------------------------
+    private JLabel createLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return lbl;
+    }
+    
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 394, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 274, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
+}

@@ -4,6 +4,9 @@
  */
 package app.view;
 
+//SE DEBE DE IMPORTAR EL DashboardController
+//import app.controller.DashboardController;
+
 /**
  *
  * @author GMG
@@ -17,6 +20,57 @@ public class DashboardView extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         setTitle("Ventana principal");
+        
+        // ← AQUÍ VA EL CÓDIGO DEL MOUSE
+        jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                //ESTE LINEA SIRVE PARA ABRIR LA VISTA EN PANTALLA(Se puede eliminar despues de crear DashboardController)
+                openInternalFrame(new DashboardInternal());
+              //SE REQUIERE CREAR DashboardController para:
+              //Crear la vista
+//            DashboardInternal view = new DashboardInternal(); 
+              //Crear el controller pasándole la vista,
+//            DashboardController controller = new DashboardController(view);
+              //Abrir la vista en pantalla
+//            openInternalFrame(view);
+            }
+        });
+        
+        jLabel2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                //ESTE LINEA SIRVE PARA ABRIR LA VISTA EN PANTALLA(Se puede eliminar despues de crear InventarioController)
+                openInternalFrame(new InventarioInternal());
+            }
+        });
+        
+        jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                //ESTE LINEA SIRVE PARA ABRIR LA VISTA EN PANTALLA(Se puede eliminar despues de crear InventarioController)
+                openInternalFrame(new MovimientosInternal());
+            }
+        });
+        
+        jLabel4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                //ESTE LINEA SIRVE PARA ABRIR LA VISTA EN PANTALLA(Se puede eliminar despues de crear InventarioController)
+                openInternalFrame(new PedidosInternal());
+            }
+        });
+        
+        jLabel5.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                //ESTE LINEA SIRVE PARA ABRIR LA VISTA EN PANTALLA(Se puede eliminar despues de crear InventarioController)
+                openInternalFrame(new ProveedoresInternal());
+            }
+        });
+
+        
+    }
+    
+    private void openInternalFrame(javax.swing.JInternalFrame frame) {
+        jDesktopPane1.removeAll();      // Limpia el desktop pane
+        jDesktopPane1.add(frame);       // Agrega el nuevo internal frame
+        frame.setVisible(true);         // Lo muestra
     }
 
     /**
@@ -194,6 +248,8 @@ public class DashboardView extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
+
+    
     /**
      * @param args the command line arguments
      */
