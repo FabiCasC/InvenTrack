@@ -2,87 +2,136 @@ package app.model.estructuras;
 
 import app.model.Lotes;
 
-public class ColaDoble {
-    private NodoDoble frente;  // Cabeza
-    private NodoDoble finalCola; // Cola
+/**
+ * Estructura de Datos: Cola Doble (Deque - Double Ended Queue)
+ * Algoritmo soportado: DRIFO (Dynamic Removal In First Out)
+ * * Esta estructura permite insertar y eliminar elementos tanto por el frente
+ * como por el final, permitiendo flexibilidad total para gestionar lotes
+ * por fecha de vencimiento.
+ */
+public class ColaDobleDrifo {
+
+    // ==========================================
+    // CLASE INTERNA: NODO DOBLEMENTE ENLAZADO
+    // ==========================================
+    private static class NodoDoble {
+        Lotes lote;
+        NodoDoble siguiente; // Puntero hacia adelante
+        NodoDoble anterior;  // Puntero hacia atrás
+
+        public NodoDoble(Lotes lote) {
+            this.lote = lote;
+            this.siguiente = null;
+            this.anterior = null;
+        }
+    }
+
+    // ==========================================
+    // ATRIBUTOS DE LA COLA DOBLE
+    // ==========================================
+    private NodoDoble frente;      // Cabeza de la cola (Head)
+    private NodoDoble finalCola;   // Cola de la estructura (Tail)
     private int tamano;
 
-    public ColaDoble() {
+    public ColaDobleDrifo() {
         this.frente = null;
         this.finalCola = null;
         this.tamano = 0;
     }
 
-    // --- MÉTODOS DE INSERCIÓN ---
+    // ==========================================
+    // MÉTODOS DE INSERCIÓN
+    // ==========================================
 
+    /**
+     * Inserta un lote al inicio de la estructura.
+     */
     public void insertarFrente(Lotes lote) {
         NodoDoble nuevo = new NodoDoble(lote);
+
         if (estaVacia()) {
             frente = nuevo;
             finalCola = nuevo;
         } else {
-            nuevo.setSiguiente(frente);
-            frente.setAnterior(nuevo);
-            frente = nuevo;
+            nuevo.siguiente = frente; // El nuevo apunta al antiguo frente
+            frente.anterior = nuevo;  // El antiguo frente apunta atrás al nuevo
+            frente = nuevo;           // Actualizamos el puntero frente
         }
         tamano++;
     }
 
+    /**
+     * Inserta un lote al final de la estructura.
+     * (Comúnmente usado al cargar la lista ordenada por vencimiento)
+     */
     public void insertarFinal(Lotes lote) {
         NodoDoble nuevo = new NodoDoble(lote);
+
         if (estaVacia()) {
             frente = nuevo;
             finalCola = nuevo;
         } else {
-            finalCola.setSiguiente(nuevo);
-            nuevo.setAnterior(finalCola);
-            finalCola = nuevo;
+            finalCola.siguiente = nuevo; // El antiguo final apunta al nuevo
+            nuevo.anterior = finalCola;  // El nuevo apunta atrás al antiguo final
+            finalCola = nuevo;           // Actualizamos el puntero final
         }
         tamano++;
     }
 
-    // --- MÉTODOS DE ELIMINACIÓN ---
+    // ==========================================
+    // MÉTODOS DE ELIMINACIÓN
+    // ==========================================
 
+    /**
+     * Elimina y devuelve el lote del frente.
+     * (Usado para sacar lo que vence más pronto)
+     */
     public Lotes eliminarFrente() {
         if (estaVacia()) return null;
 
-        Lotes lote = frente.getLote();
-        
-        if (frente == finalCola) { // Solo había uno
+        Lotes loteSalida = frente.lote;
+
+        if (frente == finalCola) { // Caso: Solo había un elemento
             frente = null;
             finalCola = null;
         } else {
-            frente = frente.getSiguiente();
-            frente.setAnterior(null); // Romper referencia hacia atrás
+            frente = frente.siguiente; // Movemos frente al segundo
+            frente.anterior = null;    // Rompemos el enlace hacia atrás
         }
         tamano--;
-        return lote;
+        return loteSalida;
     }
 
+    /**
+     * Elimina y devuelve el lote del final.
+     * (Usado si se requiere estrategia LIFO o sacar lo más fresco)
+     */
     public Lotes eliminarFinal() {
         if (estaVacia()) return null;
 
-        Lotes lote = finalCola.getLote();
+        Lotes loteSalida = finalCola.lote;
 
-        if (frente == finalCola) { // Solo había uno
+        if (frente == finalCola) { // Caso: Solo había un elemento
             frente = null;
             finalCola = null;
         } else {
-            finalCola = finalCola.getAnterior();
-            finalCola.setSiguiente(null); // Romper referencia hacia adelante
+            finalCola = finalCola.anterior; // Retrocedemos al penúltimo
+            finalCola.siguiente = null;     // Rompemos el enlace hacia adelante
         }
         tamano--;
-        return lote;
+        return loteSalida;
     }
 
-    // --- MÉTODOS DE CONSULTA ---
+    // ==========================================
+    // MÉTODOS DE CONSULTA Y UTILIDAD
+    // ==========================================
 
     public Lotes verFrente() {
-        return estaVacia() ? null : frente.getLote();
+        return estaVacia() ? null : frente.lote;
     }
 
     public Lotes verFinal() {
-        return estaVacia() ? null : finalCola.getLote();
+        return estaVacia() ? null : finalCola.lote;
     }
 
     public boolean estaVacia() {
@@ -91,5 +140,18 @@ public class ColaDoble {
 
     public int getTamaño() {
         return tamano;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ColaDRIFO [ ");
+        NodoDoble actual = frente;
+        while (actual != null) {
+            sb.append(actual.lote.toString()).append(" <-> ");
+            actual = actual.siguiente;
+        }
+        sb.append("NULL ]");
+        return sb.toString();
     }
 }
