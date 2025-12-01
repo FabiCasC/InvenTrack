@@ -66,6 +66,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         
         // EVENTO: CREAR PEDIDO
         btnNuevoPedido.addActionListener(e -> {
+            // Este constructor ahora es válido gracias al cambio en ProductoFormInternal.java
             ProductoFormInternal form = new ProductoFormInternal("nuevo");
             getDesktopPane().add(form);
             form.setVisible(true);

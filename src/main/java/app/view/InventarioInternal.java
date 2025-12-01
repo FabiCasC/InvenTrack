@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
- */
 package app.view;
 
 import javax.swing.*;
@@ -10,7 +6,6 @@ import java.awt.*;
 
 public class InventarioInternal extends javax.swing.JInternalFrame {
 
-    // COMPONENTES PARA CONTROLADOR
     public JLabel lblTotalProductos;
     public JLabel lblStockTotal;
     public JLabel lblProductosAlerta;
@@ -33,9 +28,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
         main.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        //-----------------------------------------
-        // TÍTULO
-        //-----------------------------------------
         JLabel titulo = new JLabel("Inventario");
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titulo.setForeground(new Color(50, 50, 50));
@@ -48,9 +40,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         main.add(subtitulo);
         main.add(Box.createVerticalStrut(20));
 
-        //-----------------------------------------
-        // MÉTRICAS
-        //-----------------------------------------
         JPanel metricsPanel = new JPanel(new GridLayout(1, 3, 15, 0));
         metricsPanel.setOpaque(false);
 
@@ -65,9 +54,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         main.add(metricsPanel);
         main.add(Box.createVerticalStrut(20));
 
-        //-----------------------------------------
-        // BOTÓNES: AGREGAR / EDITAR / ELIMINAR
-        //-----------------------------------------
         JPanel topBar = new JPanel(new BorderLayout());
         topBar.setOpaque(false);
 
@@ -91,7 +77,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         btnEditarProducto.setFocusPainted(false);
         btnEliminarProducto.setFocusPainted(false);
 
-        // Panel donde irán los 3 botones
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionsPanel.setOpaque(false);
 
@@ -99,7 +84,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         actionsPanel.add(btnEditarProducto);
         actionsPanel.add(btnEliminarProducto);
         
-        // Agregamos el panel a la barra superior
         btnAgregarProducto.setFocusPainted(false);
 
         topBar.add(btnAgregarProducto, BorderLayout.EAST);
@@ -107,9 +91,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         main.add(topBar);
         main.add(Box.createVerticalStrut(15));
 
-        //-----------------------------------------
-        // TABLA INVENTARIO
-        //-----------------------------------------
         tblInventario = new JTable();
 
         tblInventario.setModel(new DefaultTableModel(
@@ -126,7 +107,7 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // La tabla NO debe ser editable
+                return false;
             }
         });
 
@@ -138,22 +119,20 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
 
         main.add(scroll);
 
+        DefaultTableModel model = (DefaultTableModel) tblInventario.getModel();
 
-        // EVENTO: AGREGAR PRODUCTO
         btnAgregarProducto.addActionListener(e -> {
-            ProductoFormInternal form = new ProductoFormInternal("nuevo");
+            ProductoFormInternal form = new ProductoFormInternal("nuevo", model);
             getDesktopPane().add(form);
             form.setVisible(true);
         });
 
-        // EVENTO: EDITAR PRODUCTO
         btnEditarProducto.addActionListener(e -> {
-            ProductoFormInternal form = new ProductoFormInternal("editar");
+            ProductoFormInternal form = new ProductoFormInternal("editar", model); // No necesita el modelo para editar, pero lo mantenemos para consistencia
             getDesktopPane().add(form);
             form.setVisible(true);
         });
 
-        // EVENTO: ELIMINAR PRODUCTO
         btnEliminarProducto.addActionListener(e -> {
             int opcion = JOptionPane.showConfirmDialog(
                     this,
@@ -171,9 +150,6 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         add(main);
     }
 
-    //-----------------------------------------
-    // CARD DE MÉTRICAS
-    //-----------------------------------------
     private JPanel createMetricCard(String title, JLabel dynamic) {
         JPanel card = new JPanel();
         card.setBackground(Color.WHITE);

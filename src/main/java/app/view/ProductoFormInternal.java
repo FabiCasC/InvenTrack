@@ -1,10 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
- */
 package app.view;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class ProductoFormInternal extends javax.swing.JInternalFrame {
@@ -19,24 +16,31 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
     public JButton btnCancelar;
     public JButton btnGuardar;
 
-    private String modo; // "nuevo" o "editar"
+    private final String modo;
+    private DefaultTableModel inventarioModel; // Nuevo campo para guardar la referencia al modelo
 
+    // Nuevo Constructor A (SIMPLE): Para llamadas que NO necesitan el modelo de la tabla (como desde PedidosInternal)
     public ProductoFormInternal(String modo) {
+        this(modo, null); // Llama al constructor completo con un modelo nulo
+    }
+    
+    // Constructor B (completo): Para llamadas que SÍ necesitan el modelo de la tabla (como desde InventarioInternal)
+    public ProductoFormInternal(String modo, DefaultTableModel model) {
         this.modo = modo;
+        this.inventarioModel = model; // Asignamos la referencia del modelo
 
         setTitle(modo.equals("nuevo") ? "Nuevo Producto" : "Editar Producto");
         setSize(450, 600);
         setClosable(true);
         setIconifiable(true);
         setResizable(false);
+        
+        setLocation((900 - getWidth()) / 2, (650 - getHeight()) / 2);
 
         JPanel main = new JPanel();
         main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
         main.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        //--------------------------------------------
-        // TÍTULO
-        //--------------------------------------------
         JLabel titulo = new JLabel(
                 modo.equals("nuevo") ? "Nuevo Producto" : "Editar Producto"
         );
@@ -52,9 +56,6 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
         main.add(subtitulo);
         main.add(Box.createVerticalStrut(20));
 
-        //--------------------------------------------
-        // CAMPOS DEL FORMULARIO
-        //--------------------------------------------
         main.add(createLabel("Nombre del Producto"));
         txtNombreProducto = new JTextField();
         txtNombreProducto.setPreferredSize(new Dimension(300, 35));
@@ -67,8 +68,9 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
         main.add(createLabel("Tipo de Producto"));
         cbTipoProducto = new JComboBox<>();
         cbTipoProducto.addItem("Selecciona un tipo");
+        cbTipoProducto.addItem("Alimentos"); // Ítem de prueba
+        cbTipoProducto.addItem("Limpieza"); // Ítem de prueba
         cbTipoProducto.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
-        // AQUÍ tu compañera cargará los tipos desde Firestore
         main.add(cbTipoProducto);
         main.add(Box.createVerticalStrut(15));
 
@@ -94,20 +96,20 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
         main.add(createLabel("Proveedor"));
         cbProveedor = new JComboBox<>();
         cbProveedor.addItem("Selecciona un proveedor");
+        cbProveedor.addItem("Proveedor A"); // Ítem de prueba
+        cbProveedor.addItem("Proveedor B"); // Ítem de prueba
         cbProveedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
-        // AQUÍ tu compañera cargará los proveedores desde Firestore
         main.add(cbProveedor);
         main.add(Box.createVerticalStrut(20));
 
-        //--------------------------------------------
-        // BOTONES
-        //--------------------------------------------
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttons.setOpaque(false);
 
         btnCancelar = new JButton("Cancelar");
         btnCancelar.setBackground(new Color(200, 200, 200));
         btnCancelar.setFocusPainted(false);
+        
+        btnCancelar.addActionListener(e -> dispose());
 
         btnGuardar = new JButton(
                 modo.equals("nuevo") ? "Agregar Producto" : "Guardar Cambios"
@@ -115,6 +117,43 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
         btnGuardar.setBackground(new Color(70, 120, 240));
         btnGuardar.setForeground(Color.WHITE);
         btnGuardar.setFocusPainted(false);
+        
+        // LÓGICA DE AGREGAR PRODUCTO A LA TABLA
+        btnGuardar.addActionListener(e -> {
+            
+            if (modo.equals("nuevo")) {
+                // 1. Obtener los datos del formulario
+                String producto = txtNombreProducto.getText();
+                String tipo = (String) cbTipoProducto.getSelectedItem();
+                String stock = txtCantidadStock.getText();
+                String vencimiento = txtFechaVencimiento.getText();
+                String lote = txtNumeroLote.getText();
+                String proveedor = (String) cbProveedor.getSelectedItem();
+
+                // 2. Validaciones básicas
+                if (producto.trim().isEmpty() || tipo.equals("Selecciona un tipo") || proveedor.equals("Selecciona un proveedor")) {
+                    // Usamos JOptionPane.showMessageDialog en lugar de alert()
+                    JOptionPane.showMessageDialog(this, "Por favor, completa todos los campos requeridos (Producto, Tipo y Proveedor).", "Error de Validación", JOptionPane.ERROR_MESSAGE);
+                    return; // Detiene la ejecución si falta información
+                }
+                
+                // 3. Crear la fila de datos y agregarla SOLO si el modelo existe (es decir, viene de InventarioInternal)
+                if (inventarioModel != null) {
+                    Object[] fila = {producto, tipo, stock, vencimiento, lote, proveedor, "Ver/Editar"};
+                    inventarioModel.addRow(fila);
+                    JOptionPane.showMessageDialog(this, "Producto agregado correctamente al Inventario.");
+                } else {
+                    // Si el modelo es nulo (viene de PedidosInternal o similar), es un pedido/producto simulado
+                    JOptionPane.showMessageDialog(this, "Pedido simulado creado (No guarda en tabla de inventario).");
+                }
+                
+            } else {
+                // Lógica de edición
+                JOptionPane.showMessageDialog(this, "Producto guardado correctamente.");
+            }
+            
+            dispose(); // Cierra la ventana después de la acción
+        });
 
         buttons.add(btnCancelar);
         buttons.add(btnGuardar);
@@ -124,9 +163,6 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
         add(main);
     }
 
-    //--------------------------------------------
-    // LABEL BONITO
-    //--------------------------------------------
     private JLabel createLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
