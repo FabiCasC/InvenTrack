@@ -1,9 +1,14 @@
 package app.view;
 
+import app.controller.ProveedorController;
+import app.controller.ProductoController;
+import app.model.Proveedores;
+import app.model.Productos;
 import app.utils.ColorConstants;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProveedoresInternal extends javax.swing.JInternalFrame {
@@ -13,6 +18,9 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
     public JLabel lblActivos;
     public JLabel lblAlertas;
     public JPanel panelProveedores;
+    
+    private ProveedorController proveedorController;
+    private ProductoController productoController;
 
     public ProveedoresInternal() {
         setTitle("Proveedores");
@@ -22,6 +30,9 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         setLayout(new BorderLayout());
         getContentPane().setBackground(ColorConstants.BLANCO_HUMO);
         setSize(970, 650);
+
+        this.proveedorController = new ProveedorController();
+        this.productoController = new ProductoController();
 
         JPanel main = new JPanel(new BorderLayout());
         main.setBackground(ColorConstants.BLANCO_HUMO);
@@ -48,7 +59,19 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         titleBox.add(Box.createVerticalStrut(5));
         titleBox.add(subtitle);
 
+        // Botón Nuevo Proveedor
+        btnNuevoProveedor = new JButton("+ Nuevo Proveedor");
+        btnNuevoProveedor.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnNuevoProveedor.setBackground(ColorConstants.AZUL_ACERO);
+        btnNuevoProveedor.setForeground(Color.WHITE);
+        btnNuevoProveedor.setFocusPainted(false);
+        btnNuevoProveedor.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnNuevoProveedor.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        btnNuevoProveedor.setPreferredSize(new Dimension(170, 35));
+        btnNuevoProveedor.addActionListener(e -> abrirFormularioNuevo());
+
         header.add(titleBox, BorderLayout.WEST);
+        header.add(btnNuevoProveedor, BorderLayout.EAST);
         main.add(header, BorderLayout.NORTH);
 
         // CONTENT
@@ -84,6 +107,113 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         scroll.getViewport().setBackground(ColorConstants.BLANCO_HUMO);
 
         content.add(scroll);
+        
+        // Cargar proveedores al inicializar
+        cargarProveedores();
+    }
+    
+    private void abrirFormularioNuevo() {
+        ProveedorFormInternal form = new ProveedorFormInternal("nuevo");
+        form.setSize(600, 450);
+        form.setLocation(
+            (getDesktopPane().getWidth() - form.getWidth()) / 2,
+            (getDesktopPane().getHeight() - form.getHeight()) / 2
+        );
+        getDesktopPane().add(form);
+        form.setVisible(true);
+        
+        // Recargar después de guardar
+        form.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
+            @Override
+            public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
+                cargarProveedores();
+            }
+        });
+    }
+    
+    private void cargarProveedores() {
+        try {
+            // Limpiar panel
+            panelProveedores.removeAll();
+            
+            // Cargar proveedores desde Firebase
+            List<Proveedores> proveedores = proveedorController.listarProveedores();
+            List<Productos> todosProductos = productoController.listarProductos();
+            
+            if (proveedores == null || proveedores.isEmpty()) {
+                JLabel lblVacio = new JLabel("No hay proveedores registrados");
+                lblVacio.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                lblVacio.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+                lblVacio.setAlignmentX(Component.CENTER_ALIGNMENT);
+                panelProveedores.add(Box.createVerticalGlue());
+                panelProveedores.add(lblVacio);
+                panelProveedores.add(Box.createVerticalGlue());
+                
+                lblTotalProv.setText("0");
+                lblActivos.setText("0");
+                lblAlertas.setText("0");
+            } else {
+                int total = proveedores.size();
+                int activos = 0;
+                int enAlerta = 0;
+                
+                for (Proveedores proveedor : proveedores) {
+                    // Obtener productos asociados al proveedor
+                    List<String> productosNombre = new ArrayList<>();
+                    if (todosProductos != null) {
+                        for (Productos producto : todosProductos) {
+                            if (proveedor.getProveedorId().equals(producto.getProveedorId())) {
+                                productosNombre.add(producto.getNombre());
+                            }
+                        }
+                    }
+                    
+                    // Información del proveedor
+                    String nombre = proveedor.getNombre() != null ? proveedor.getNombre() : "Sin nombre";
+                    String telefono = proveedor.getTelefono() != null && !proveedor.getTelefono().trim().isEmpty() 
+                        ? proveedor.getTelefono() : "No disponible";
+                    String email = proveedor.getEmail() != null ? proveedor.getEmail() : "No disponible";
+                    String contacto = nombre; // Usar nombre como contacto
+                    String direccion = "No disponible"; // No tenemos dirección en el modelo
+                    
+                    // Si tiene productos, está activo
+                    String estado = !productosNombre.isEmpty() ? "Activo" : "Alerta";
+                    if (estado.equals("Activo")) {
+                        activos++;
+                    } else {
+                        enAlerta++;
+                    }
+                    
+                    // Crear tarjeta
+                    addProveedorCard(
+                        nombre,
+                        contacto,
+                        telefono,
+                        email,
+                        direccion,
+                        productosNombre.isEmpty() ? List.of("Sin productos") : productosNombre,
+                        "N/A", // Última entrega
+                        productosNombre.size(), // Total de entregas (productos)
+                        85, // Confiabilidad (placeholder)
+                        estado
+                    );
+                }
+                
+                // Actualizar estadísticas
+                lblTotalProv.setText(String.valueOf(total));
+                lblActivos.setText(String.valueOf(activos));
+                lblAlertas.setText(String.valueOf(enAlerta));
+            }
+            
+            panelProveedores.revalidate();
+            panelProveedores.repaint();
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar proveedores: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private JPanel createStatCard(String title, JLabel valueLabel, Color accentColor) {
@@ -129,7 +259,7 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         card.setBackground(ColorConstants.BLANCO_PURO);
         card.setBorder(new CompoundBorder(
             new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
-            new EmptyBorder(20, 20, 20, 20)
+                new EmptyBorder(20, 20, 20, 20)
         ));
 
         // IZQUIERDA
@@ -226,20 +356,5 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         panelProveedores.revalidate();
 
         return card;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void initComponents() {
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 394, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 274, Short.MAX_VALUE)
-        );
-        pack();
     }
 }

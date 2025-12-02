@@ -98,16 +98,16 @@ public class MovimientoService {
         }
         
         // OBLIGATORIO: Siempre crear un lote para cada entrada
-        if (loteId == null || loteId.trim().isEmpty()) {
-            loteId = generarLoteId(producto.getProductoId());
-        }
-        
+            if (loteId == null || loteId.trim().isEmpty()) {
+                loteId = generarLoteId(producto.getProductoId());
+            }
+            
         // Crear un nuevo lote con la cantidad de entrada
-        Lotes nuevoLote = new Lotes();
-        nuevoLote.setLoteId(loteId);
-        nuevoLote.setCantidad(movimiento.getCantidad());
-        nuevoLote.setFecha_Entrada(movimiento.getFecha());
-        
+            Lotes nuevoLote = new Lotes();
+            nuevoLote.setLoteId(loteId);
+            nuevoLote.setCantidad(movimiento.getCantidad());
+            nuevoLote.setFecha_Entrada(movimiento.getFecha());
+            
         // Calcular o usar fecha de vencimiento
         if (fechaVencimiento != null) {
             nuevoLote.setFecha_Vencimiento(fechaVencimiento);
@@ -118,20 +118,20 @@ public class MovimientoService {
             
             // Perecibles: 30 días, No perecibles: 365 días
             if (producto.getTipo() != null && producto.getTipo().equalsIgnoreCase("Perecible")) {
-                cal.add(Calendar.DAY_OF_MONTH, 30);
+            cal.add(Calendar.DAY_OF_MONTH, 30);
             } else {
                 cal.add(Calendar.DAY_OF_YEAR, 365);
             }
             nuevoLote.setFecha_Vencimiento(cal.getTime());
         }
-        
+            
         // Guardar lote en Firebase
-        db.collection(COLLECTION_PRODUCTOS)
-                .document(producto.getProductoId())
-                .collection(COLLECTION_LOTES)
-                .document(loteId)
-                .set(nuevoLote)
-                .get();
+            db.collection(COLLECTION_PRODUCTOS)
+                    .document(producto.getProductoId())
+                    .collection(COLLECTION_LOTES)
+                    .document(loteId)
+                    .set(nuevoLote)
+                    .get();
         
         // RF4.1 y RF4.2 - Agregar lote a la estructura correspondiente según el método de rotación
         String metodo = producto.getMetodo_rotacion();
@@ -296,7 +296,7 @@ public class MovimientoService {
                 
                 if (lote.getCantidad() > 0) {
                     // Actualizar lote si aún tiene stock
-                    actualizarLote(producto.getProductoId(), lote);
+                actualizarLote(producto.getProductoId(), lote);
                 } else {
                     // Eliminar lote si se agotó completamente
                     eliminarLote(producto.getProductoId(), lote.getLoteId());
@@ -334,13 +334,13 @@ public class MovimientoService {
         String algoritmo = producto.getMetodo_rotacion();
         
         if (algoritmo != null) {
-            if (algoritmo.equalsIgnoreCase("FIFO")) {
+        if (algoritmo.equalsIgnoreCase("FIFO")) {
                 // FIFO: Primero en entrar, primero en salir
-                lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada));
-            } else if (algoritmo.equalsIgnoreCase("LIFO")) {
+            lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada));
+        } else if (algoritmo.equalsIgnoreCase("LIFO")) {
                 // LIFO: Último en entrar, primero en salir
-                lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada).reversed());
-            } else if (algoritmo.equalsIgnoreCase("DRIFO")) {
+            lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada).reversed());
+        } else if (algoritmo.equalsIgnoreCase("DRIFO")) {
                 // DRIFO: Ordenar por fecha de vencimiento (lo que vence primero sale primero)
                 // Manejar nulls: lotes sin fecha de vencimiento van al final
                 lotes.sort(Comparator.comparing(
@@ -583,6 +583,46 @@ public class MovimientoService {
         }
         
         return movimientos;
+    }
+    
+    /**
+     * Elimina movimientos de productos que no existen
+     * @return Número de movimientos eliminados
+     */
+    public int eliminarMovimientosProductosDesconocidos() throws ExecutionException, InterruptedException {
+        List<Movimientos> todosMovimientos = listarMovimientos();
+        List<String> idsParaEliminar = new ArrayList<>();
+        
+        for (Movimientos movimiento : todosMovimientos) {
+            if (movimiento.getProductoId() != null && !movimiento.getProductoId().trim().isEmpty()) {
+                // Verificar si el producto existe
+                DocumentSnapshot docProducto = db.collection(COLLECTION_PRODUCTOS)
+                        .document(movimiento.getProductoId())
+                        .get()
+                        .get();
+                
+                if (!docProducto.exists()) {
+                    // El producto no existe, marcar movimiento para eliminar
+                    idsParaEliminar.add(movimiento.getMovimientoId());
+                }
+            }
+        }
+        
+        // Eliminar los movimientos de productos desconocidos
+        int eliminados = 0;
+        for (String movimientoId : idsParaEliminar) {
+            try {
+                db.collection(COLLECTION_MOVIMIENTOS)
+                        .document(movimientoId)
+                        .delete()
+                        .get();
+                eliminados++;
+            } catch (Exception e) {
+                System.err.println("Error al eliminar movimiento " + movimientoId + ": " + e.getMessage());
+            }
+        }
+        
+        return eliminados;
     }
    
 }

@@ -54,7 +54,7 @@ public class MovimientoFormInternal extends javax.swing.JInternalFrame {
         main.setBackground(ColorConstants.BLANCO_HUMO);
         main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
         main.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
+
         // Scroll pane para contenido
         JScrollPane scrollPane = new JScrollPane(main);
         scrollPane.setBorder(null);
@@ -154,7 +154,7 @@ public class MovimientoFormInternal extends javax.swing.JInternalFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         panelBotones.setBackground(ColorConstants.BLANCO_HUMO);
         panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 20, 15, 20));
-        
+
         // Crear botones
         btnCancelar = new JButton("Cancelar");
         btnCancelar.setBackground(ColorConstants.GRIS_NEUTRO);
@@ -173,10 +173,10 @@ public class MovimientoFormInternal extends javax.swing.JInternalFrame {
         btnRegistrar.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
         btnRegistrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnRegistrar.addActionListener(e -> registrarMovimiento());
-        
+
         panelBotones.add(btnCancelar);
         panelBotones.add(btnRegistrar);
-        
+
         // Agregar botones fijos en la parte inferior
         add(panelBotones, BorderLayout.SOUTH);
     }
@@ -188,7 +188,7 @@ public class MovimientoFormInternal extends javax.swing.JInternalFrame {
         lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
         return lbl;
     }
-
+    
     private JTextField createTextField() {
         JTextField field = new JTextField();
         field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));

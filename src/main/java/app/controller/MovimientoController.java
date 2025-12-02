@@ -125,6 +125,38 @@ public class MovimientoController {
         }
     }
 
+    /**
+     * Elimina movimientos de productos que no existen
+     * @param mostrarMensajes Si es true, muestra mensajes de éxito/error
+     * @return Número de movimientos eliminados
+     */
+    public int eliminarMovimientosProductosDesconocidos(boolean mostrarMensajes) {
+        try {
+            int eliminados = movimientoService.eliminarMovimientosProductosDesconocidos();
+            if (mostrarMensajes) {
+                if (eliminados > 0) {
+                    mostrarExito("Se eliminaron " + eliminados + " movimiento(s) de productos desconocidos.");
+                } else {
+                    mostrarExito("No se encontraron movimientos de productos desconocidos.");
+                }
+            }
+            return eliminados;
+        } catch (Exception e) {
+            if (mostrarMensajes) {
+                mostrarError("Error al eliminar movimientos: " + e.getMessage());
+            }
+            return 0;
+        }
+    }
+    
+    /**
+     * Elimina movimientos de productos que no existen (sin mostrar mensajes)
+     * @return Número de movimientos eliminados
+     */
+    public int eliminarMovimientosProductosDesconocidos() {
+        return eliminarMovimientosProductosDesconocidos(false);
+    }
+
     private void mostrarError(String mensaje) {
         JOptionPane.showMessageDialog(null, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
     }

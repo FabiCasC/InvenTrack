@@ -72,7 +72,6 @@ public class DashboardView extends javax.swing.JFrame {
         // ===== SIDEBAR =====
         sidebar = new JPanel();
         sidebar.setBackground(ColorConstants.AZUL_PROFUNDO); // #1E3A8A
-        sidebar.setPreferredSize(new Dimension(220, 700));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         
@@ -98,13 +97,64 @@ public class DashboardView extends javax.swing.JFrame {
         sidebar.add(Box.createVerticalStrut(8));
         sidebar.add(createMenuItem("Proveedores", "/assets/icons/proveedor.png", new ProveedoresInternal(), false));
         
-        sidebar.add(Box.createVerticalGlue());
+        // Separador para algoritmos
+        sidebar.add(Box.createVerticalStrut(15));
+        
+        JSeparator separador = new JSeparator();
+        separador.setForeground(new Color(255, 255, 255, 50));
+        separador.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        sidebar.add(separador);
+        sidebar.add(Box.createVerticalStrut(8));
+        
+        // RF4 - Algoritmos y Análisis
+        JLabel lblSeccion = new JLabel("ALGORITMOS");
+        lblSeccion.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblSeccion.setForeground(new Color(200, 200, 220));
+        lblSeccion.setBorder(BorderFactory.createEmptyBorder(10, 20, 5, 20));
+        sidebar.add(lblSeccion);
+        
+        sidebar.add(createMenuItem("Predicciones", "/assets/icons/cuadro-predictivo.png", new PrediccionesInternal(), false));
+        sidebar.add(Box.createVerticalStrut(8));
+        sidebar.add(createMenuItem("Grafo Relaciones", "/assets/icons/proveedor.png", new GrafoInternal(), false));
+        sidebar.add(Box.createVerticalStrut(8));
+        sidebar.add(createMenuItem("Alertas", "/assets/icons/pedido-en-linea.png", new AlertasInternal(), false));
+        
+        // Separador para reportes
+        sidebar.add(Box.createVerticalStrut(15));
+        
+        JSeparator separadorReportes = new JSeparator();
+        separadorReportes.setForeground(new Color(255, 255, 255, 50));
+        separadorReportes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        sidebar.add(separadorReportes);
+        sidebar.add(Box.createVerticalStrut(8));
+        
+        // RF8 - Reportes
+        JLabel lblSeccionReportes = new JLabel("REPORTES");
+        lblSeccionReportes.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblSeccionReportes.setForeground(new Color(200, 200, 220));
+        lblSeccionReportes.setBorder(BorderFactory.createEmptyBorder(10, 20, 5, 20));
+        sidebar.add(lblSeccionReportes);
+        
+        sidebar.add(createMenuItem("Inventario Crítico", "/assets/icons/proveedor.png", new ReporteInventarioCriticoInternal(), false));
+        sidebar.add(Box.createVerticalStrut(8));
+        sidebar.add(createMenuItem("Predicción", "/assets/icons/cuadro-predictivo.png", new ReportePrediccionInternal(), false));
+        sidebar.add(Box.createVerticalStrut(8));
+        sidebar.add(createMenuItem("Movimientos", "/assets/icons/caja.png", new ReporteMovimientosInternal(), false));
+        
+        // Hacer sidebar scrolleable
+        JScrollPane sidebarScroll = new JScrollPane(sidebar);
+        sidebarScroll.setBorder(null);
+        sidebarScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        sidebarScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        sidebarScroll.getVerticalScrollBar().setUnitIncrement(16);
+        sidebarScroll.setPreferredSize(new Dimension(220, 700));
+        sidebarScroll.getViewport().setBackground(ColorConstants.AZUL_PROFUNDO);
         
         // ===== DESKTOP PANE =====
         jDesktopPane1 = new JDesktopPane();
         jDesktopPane1.setBackground(ColorConstants.BLANCO_HUMO);
         
-        mainPanel.add(sidebar, BorderLayout.WEST);
+        mainPanel.add(sidebarScroll, BorderLayout.WEST);
         mainPanel.add(jDesktopPane1, BorderLayout.CENTER);
         
         getContentPane().add(mainPanel);

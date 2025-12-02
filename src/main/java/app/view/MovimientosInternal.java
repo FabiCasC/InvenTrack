@@ -114,7 +114,7 @@ public class MovimientosInternal extends javax.swing.JInternalFrame {
             );
             getDesktopPane().add(form);
             form.setVisible(true);
-            
+        
             // Recargar después de registrar
             form.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
                 @Override
@@ -256,12 +256,44 @@ public class MovimientosInternal extends javax.swing.JInternalFrame {
             productosMap.clear();
             if (productos != null) {
                 for (Productos p : productos) {
-                    productosMap.put(p.getProductoId(), p.getNombre());
+                    if (p.getProductoId() != null && p.getNombre() != null) {
+                        productosMap.put(p.getProductoId(), p.getNombre());
+                    }
                 }
             }
         } catch (Exception e) {
             System.err.println("Error al cargar productos: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Obtiene el nombre del producto, intentando desde el mapa primero y luego desde Firebase
+     */
+    private String obtenerNombreProducto(String productoId) {
+        if (productoId == null || productoId.trim().isEmpty()) {
+            return "Producto desconocido";
+        }
+        
+        // Primero intentar del mapa
+        String nombre = productosMap.get(productoId);
+        if (nombre != null && !nombre.trim().isEmpty()) {
+            return nombre;
+        }
+        
+        // Si no está en el mapa, intentar buscarlo directamente desde Firebase
+        try {
+            Productos producto = productoController.obtenerProducto(productoId);
+            if (producto != null && producto.getNombre() != null) {
+                // Actualizar el mapa para futuras consultas
+                productosMap.put(productoId, producto.getNombre());
+                return producto.getNombre();
+            }
+        } catch (Exception e) {
+            System.err.println("Error al obtener producto " + productoId + ": " + e.getMessage());
+        }
+        
+        // Si todo falla, mostrar el ID como última opción
+        return productoId + " (ID)";
     }
 
     private void cargarUsuarios() {
@@ -271,14 +303,22 @@ public class MovimientosInternal extends javax.swing.JInternalFrame {
 
     private void cargarMovimientos() {
         try {
+            // Primero limpiar movimientos de productos desconocidos automáticamente
+            movimientoController.eliminarMovimientosProductosDesconocidos();
+            
+            // Recargar productos después de la limpieza para asegurar que el mapa esté actualizado
+            cargarProductos();
+            
             // RF3.3 - Cargar movimientos desde Firebase
             List<Movimientos> movimientos = movimientoController.listarMovimientos();
             
             // Filtrar según el tipo seleccionado
-            if (filtroActual.equals("entrada")) {
-                movimientos = movimientoController.listarMovimientosPorTipo("entrada");
-            } else if (filtroActual.equals("salida")) {
-                movimientos = movimientoController.listarMovimientosPorTipo("salida");
+            if (movimientos != null) {
+                if (filtroActual.equals("entrada")) {
+                    movimientos = movimientoController.listarMovimientosPorTipo("entrada");
+                } else if (filtroActual.equals("salida")) {
+                    movimientos = movimientoController.listarMovimientosPorTipo("salida");
+                }
             }
             
             mostrarMovimientos(movimientos);
@@ -373,7 +413,8 @@ public class MovimientosInternal extends javax.swing.JInternalFrame {
                     salidas++;
                 }
 
-                String productoNombre = productosMap.getOrDefault(movimiento.getProductoId(), "Producto desconocido");
+                // Obtener nombre del producto
+                String productoNombre = obtenerNombreProducto(movimiento.getProductoId());
                 String usuarioNombre = movimiento.getUsuarioId() != null ? 
                     "Usuario: " + movimiento.getUsuarioId() : "Usuario no especificado";
                 String fechaStr = movimiento.getFecha() != null ? 
@@ -468,7 +509,7 @@ public class MovimientosInternal extends javax.swing.JInternalFrame {
             public void mouseExited(MouseEvent e) {
                 if (!active) {
                     chip.setBackground(ColorConstants.GRIS_CLARO);
-                }
+        }
             }
         });
 

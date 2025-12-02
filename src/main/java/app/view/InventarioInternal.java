@@ -120,7 +120,7 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         actionsPanel.add(btnAgregarProducto);
         actionsPanel.add(btnEditarProducto);
         actionsPanel.add(btnEliminarProducto);
-
+        
         topBar.add(actionsPanel, BorderLayout.EAST);
         main.add(topBar);
         main.add(Box.createVerticalStrut(12));
@@ -276,14 +276,14 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
     }
 
     private void abrirFormularioNuevo() {
-        ProductoFormInternal form = new ProductoFormInternal("nuevo", model);
+            ProductoFormInternal form = new ProductoFormInternal("nuevo", model);
         form.setSize(600, 650);
         form.setLocation(
             (getDesktopPane().getWidth() - form.getWidth()) / 2,
             (getDesktopPane().getHeight() - form.getHeight()) / 2
         );
-        getDesktopPane().add(form);
-        form.setVisible(true);
+            getDesktopPane().add(form);
+            form.setVisible(true);
         
         // Agregar listener para recargar después de guardar
         form.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
@@ -372,16 +372,16 @@ public class InventarioInternal extends javax.swing.JInternalFrame {
         }
         
         // RF2.3 - Confirmar eliminación
-        int opcion = JOptionPane.showConfirmDialog(
-            this,
+            int opcion = JOptionPane.showConfirmDialog(
+                    this,
             "¿Está seguro que desea eliminar este producto de Firebase?\n\n" +
             "Esta acción no se puede deshacer.",
             "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
 
-        if (opcion == JOptionPane.YES_OPTION) {
+            if (opcion == JOptionPane.YES_OPTION) {
             try {
                 boolean exito = productoController.eliminarProducto(productoId);
                 if (exito) {

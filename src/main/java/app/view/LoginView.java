@@ -37,7 +37,7 @@ public class LoginView extends javax.swing.JFrame {
             System.err.println("Error al inicializar Firebase: " + e.getMessage());
         }
     }
-    
+
     private void animateEntry() {
         // Animación simple sin usar setOpacity (que requiere frame undecorated)
     }
@@ -289,10 +289,10 @@ public class LoginView extends javax.swing.JFrame {
         AnimationUtils.pulseButton(btnIniciar, ColorConstants.AZUL_ACERO);
 
         try {
-            LoginController controller = new LoginController();
-            Usuarios usuario = controller.iniciarSesion(email, contraseña);
+        LoginController controller = new LoginController();
+        Usuarios usuario = controller.iniciarSesion(email, contraseña);
 
-            if (usuario != null) {
+        if (usuario != null) {
                 // Guardar usuario en sesión
                 SessionManager.getInstance().setUsuarioActual(usuario);
                 
@@ -301,7 +301,7 @@ public class LoginView extends javax.swing.JFrame {
                 btnIniciar.setText("¡Éxito!");
                 
                 Timer successTimer = new Timer(500, e -> {
-                    DashboardView d = new DashboardView();
+            DashboardView d = new DashboardView();
                     d.setVisible(true);
                     animateExit(() -> dispose());
                 });
@@ -345,7 +345,7 @@ public class LoginView extends javax.swing.JFrame {
         }
 
         java.awt.EventQueue.invokeLater(() -> {
-            new LoginView().setVisible(true);
+                new LoginView().setVisible(true);
         });
     }
 }

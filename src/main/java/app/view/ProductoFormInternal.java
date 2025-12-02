@@ -226,7 +226,7 @@ public class ProductoFormInternal extends javax.swing.JInternalFrame {
         lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
         return lbl;
     }
-
+    
     private JTextField createTextField() {
         JTextField field = new JTextField();
         field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));

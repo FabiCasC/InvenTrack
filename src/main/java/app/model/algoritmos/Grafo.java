@@ -112,6 +112,27 @@ public class Grafo {
     }
     
     /**
+     * RF4.5 - Obtiene información detallada de rutas desde un proveedor hacia sus productos
+     * @param proveedorId ID del proveedor
+     * @return Mapa con información de rutas (productoId -> nombre del producto)
+     */
+    public Map<String, String> obtenerRutasDetalladasProveedor(String proveedorId) {
+        Map<String, String> rutas = new HashMap<>();
+        
+        if (nodos.containsKey(proveedorId)) {
+            NodoGrafo proveedor = nodos.get(proveedorId);
+            for (String vecinoId : proveedor.getVecinos()) {
+                NodoGrafo vecino = nodos.get(vecinoId);
+                if (vecino != null && "PRODUCTO".equals(vecino.getTipo())) {
+                    rutas.put(vecinoId, vecino.getNombre());
+                }
+            }
+        }
+        
+        return rutas;
+    }
+    
+    /**
      * Detecta dependencias para reabastecimiento
      * RF4.5 - Detectar dependencias para reabastecimiento
      */

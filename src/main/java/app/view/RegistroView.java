@@ -28,7 +28,7 @@ public class RegistroView extends javax.swing.JFrame {
 
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        
+
         // Panel principal con layout dividido
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(ColorConstants.BLANCO_HUMO);
@@ -289,10 +289,10 @@ public class RegistroView extends javax.swing.JFrame {
         AnimationUtils.pulseButton(btnRegistrar, ColorConstants.AZUL_ACERO);
 
         try {
-            RegistroController controller = new RegistroController();
-            boolean exitoso = controller.registrarUsuario(nombre, email, contraseña, contraseña);
+        RegistroController controller = new RegistroController();
+        boolean exitoso = controller.registrarUsuario(nombre, email, contraseña, contraseña);
 
-            if (exitoso) {
+        if (exitoso) {
                 AnimationUtils.pulseButton(btnRegistrar, ColorConstants.VERDE_EXITO);
                 btnRegistrar.setText("¡Éxito!");
                 
@@ -301,7 +301,7 @@ public class RegistroView extends javax.swing.JFrame {
                         "¡Cuenta creada exitosamente!", 
                         "Registro exitoso", 
                         JOptionPane.INFORMATION_MESSAGE);
-                    new LoginView().setVisible(true);
+            new LoginView().setVisible(true);
                     dispose();
                 });
                 successTimer.setRepeats(false);
@@ -328,7 +328,7 @@ public class RegistroView extends javax.swing.JFrame {
         }
 
         java.awt.EventQueue.invokeLater(() -> {
-            new RegistroView().setVisible(true);
+                new RegistroView().setVisible(true);
         });
     }
 }

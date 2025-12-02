@@ -4,12 +4,24 @@
  */
 package app.view;
 
+import app.controller.PedidoController;
+import app.controller.ProductoController;
+import app.model.Pedidos;
+import app.model.Productos;
 import app.utils.ColorConstants;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PedidosInternal extends javax.swing.JInternalFrame {
+    
+    private PedidoController pedidoController;
+    private ProductoController productoController;
+    private Map<String, String> productosMap; // ID -> Nombre
 
     public JButton btnNuevoPedido;
 
@@ -21,7 +33,6 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
     public JLabel lblCompletados;
 
     public PedidosInternal() {
-
         setTitle("Pedidos");
         setBorder(null);
         setClosable(true);
@@ -29,6 +40,10 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         setLayout(new BorderLayout());
         getContentPane().setBackground(ColorConstants.BLANCO_HUMO);
         setSize(970, 650);
+        
+        this.pedidoController = new PedidoController();
+        this.productoController = new ProductoController();
+        this.productosMap = new HashMap<>();
 
         // PANEL PRINCIPAL
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -71,8 +86,20 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         btnNuevoPedido.addActionListener(e -> {
             PedidoFormInternal form = new PedidoFormInternal();
             form.setSize(600, 550);
+            form.setLocation(
+                (getDesktopPane().getWidth() - form.getWidth()) / 2,
+                (getDesktopPane().getHeight() - form.getHeight()) / 2
+            );
             getDesktopPane().add(form);
             form.setVisible(true);
+            
+            // Recargar después de crear pedido
+            form.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
+                @Override
+                public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
+                    cargarPedidos();
+                }
+            });
         });
 
         headerPanel.add(titlePanel, BorderLayout.WEST);
@@ -164,6 +191,114 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         cardHistorial.add(scrollHist, BorderLayout.CENTER);
 
         content.add(cardHistorial);
+        
+        // Cargar productos para mapear IDs a nombres
+        cargarProductos();
+        
+        // Cargar pedidos al inicializar
+        cargarPedidos();
+    }
+    
+    private void cargarProductos() {
+        try {
+            List<Productos> productos = productoController.listarProductos();
+            productosMap.clear();
+            if (productos != null) {
+                for (Productos p : productos) {
+                    productosMap.put(p.getProductoId(), p.getNombre());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar productos: " + e.getMessage());
+        }
+    }
+    
+    private void cargarPedidos() {
+        try {
+            // Limpiar paneles
+            panelPendientes.removeAll();
+            panelHistorial.removeAll();
+            
+            // Cargar pedidos desde Firebase
+            List<Pedidos> pedidos = pedidoController.listarPedidos();
+            
+            if (pedidos == null || pedidos.isEmpty()) {
+                JLabel lblVacioPendientes = new JLabel("No hay pedidos pendientes");
+                lblVacioPendientes.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                lblVacioPendientes.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+                lblVacioPendientes.setAlignmentX(Component.CENTER_ALIGNMENT);
+                panelPendientes.add(Box.createVerticalGlue());
+                panelPendientes.add(lblVacioPendientes);
+                panelPendientes.add(Box.createVerticalGlue());
+                
+                JLabel lblVacioHistorial = new JLabel("No hay historial de pedidos");
+                lblVacioHistorial.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                lblVacioHistorial.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+                lblVacioHistorial.setAlignmentX(Component.CENTER_ALIGNMENT);
+                panelHistorial.add(Box.createVerticalGlue());
+                panelHistorial.add(lblVacioHistorial);
+                panelHistorial.add(Box.createVerticalGlue());
+                
+                lblTotalPedidos.setText("0");
+                lblPendientes.setText("0");
+                lblCompletados.setText("0");
+            } else {
+                int total = pedidos.size();
+                int pendientes = 0;
+                int completados = 0;
+                
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                
+                for (Pedidos pedido : pedidos) {
+                    String estado = pedido.getEstado() != null ? pedido.getEstado().toLowerCase() : "";
+                    String productoNombre = productosMap.getOrDefault(pedido.getProductoId(), "Producto desconocido");
+                    String cliente = pedido.getCliente() != null ? pedido.getCliente() : "Sin cliente";
+                    String fecha = pedido.getFecha() != null ? sdf.format(pedido.getFecha()) : "Fecha no disponible";
+                    String codigo = pedido.getPedidoId() != null ? pedido.getPedidoId() : "Sin código";
+                    int cantidad = pedido.getCantidadSolicitada();
+                    
+                    // Clasificar pedidos
+                    if (estado.equals("pendiente") || estado.equals("en proceso")) {
+                        pendientes++;
+                        // Agregar a pendientes
+                        addPedidoPendiente(
+                            codigo,
+                            cliente,
+                            fecha,
+                            productoNombre + " x" + cantidad,
+                            cantidad
+                        );
+                    } else {
+                        if (estado.equals("entregado") || estado.equals("completado")) {
+                            completados++;
+                        }
+                        // Agregar al historial
+                        addPedidoHistorial(
+                            codigo,
+                            cliente,
+                            cantidad,
+                            estado.substring(0, 1).toUpperCase() + estado.substring(1)
+                        );
+                    }
+                }
+                
+                // Actualizar estadísticas
+                lblTotalPedidos.setText(String.valueOf(total));
+                lblPendientes.setText(String.valueOf(pendientes));
+                lblCompletados.setText(String.valueOf(completados));
+            }
+            
+            panelPendientes.revalidate();
+            panelPendientes.repaint();
+            panelHistorial.revalidate();
+            panelHistorial.repaint();
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar pedidos: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // =========================================================
@@ -173,7 +308,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         Color accentColor = ColorConstants.AZUL_ACERO;
         if (title.contains("Pendientes")) accentColor = ColorConstants.AMARILLO_ADVERTENCIA;
         if (title.contains("Completados")) accentColor = ColorConstants.VERDE_EXITO;
-        
+
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(ColorConstants.BLANCO_PURO);
@@ -182,7 +317,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
                 new MatteBorder(2, 0, 0, 0, accentColor),
                 new CompoundBorder(
                     new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
-                    new EmptyBorder(15, 15, 15, 15)
+                new EmptyBorder(15, 15, 15, 15)
                 )
         ));
 
@@ -207,6 +342,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
     // MÉTODO PARA AGREGAR PEDIDOS PENDIENTES
     // =========================================================
     public JPanel addPedidoPendiente(String codigo, String cliente, String fecha, String detalle, int total) {
+        final String pedidoId = codigo; // Guardar para usar en los listeners de los botones
 
         JPanel item = new JPanel(new BorderLayout());
         item.setBackground(ColorConstants.BLANCO_PURO);
@@ -245,6 +381,18 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         btnCompletar.setBorder(new EmptyBorder(5, 12, 5, 12));
         btnCompletar.setFocusPainted(false);
         btnCompletar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCompletar.addActionListener(e -> {
+            int respuesta = JOptionPane.showConfirmDialog(
+                this,
+                "¿Desea completar este pedido?",
+                "Confirmar",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (respuesta == JOptionPane.YES_OPTION) {
+                pedidoController.actualizarEstadoPedido(pedidoId, "Entregado");
+                cargarPedidos();
+            }
+        });
 
         JButton btnCancelar = new JButton("Cancelar");
         btnCancelar.setBackground(ColorConstants.GRIS_NEUTRO);
@@ -253,6 +401,18 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         btnCancelar.setBorder(new EmptyBorder(5, 12, 5, 12));
         btnCancelar.setFocusPainted(false);
         btnCancelar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCancelar.addActionListener(e -> {
+            int respuesta = JOptionPane.showConfirmDialog(
+                this,
+                "¿Desea cancelar este pedido?",
+                "Confirmar cancelación",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (respuesta == JOptionPane.YES_OPTION) {
+                pedidoController.actualizarEstadoPedido(pedidoId, "Cancelado");
+                cargarPedidos();
+            }
+        });
 
         right.add(btnCompletar);
         right.add(btnCancelar);
@@ -340,30 +500,4 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         panelHistorial.revalidate();
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 394, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 274, Short.MAX_VALUE)
-        );
-
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
 }

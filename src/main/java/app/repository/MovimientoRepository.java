@@ -176,6 +176,17 @@ public class MovimientoRepository {
     }
 
     /**
+     * Elimina un movimiento por su ID
+     * @param movimientoId ID del movimiento a eliminar
+     */
+    public void delete(String movimientoId) throws ExecutionException, InterruptedException {
+        db.collection(COLLECTION_NAME)
+                .document(movimientoId)
+                .delete()
+                .get();
+    }
+
+    /**
      * Genera un ID automático para un nuevo movimiento
      */
     private String generateMovimientoId() throws ExecutionException, InterruptedException {
