@@ -21,7 +21,7 @@ public class MovimientoController {
      * Registra una entrada de stock
      */
     public boolean registrarEntrada(String productoId, int cantidad, String usuarioId,
-                                   String algoritmo, String loteId) {
+                                   String algoritmo, String loteId, Date fechaVencimiento) {
         try {
             Movimientos movimiento = new Movimientos();
             movimiento.setProductoId(productoId);
@@ -31,7 +31,7 @@ public class MovimientoController {
             movimiento.setUsuarioId(usuarioId);
             movimiento.setAlgoritmo(algoritmo);
 
-            Movimientos movimientoRegistrado = movimientoService.registrarMovimiento(movimiento, loteId);
+            Movimientos movimientoRegistrado = movimientoService.registrarMovimiento(movimiento, loteId, fechaVencimiento);
             mostrarExito("Entrada registrada exitosamente.\nID: " + movimientoRegistrado.getMovimientoId());
             return true;
 
@@ -55,7 +55,7 @@ public class MovimientoController {
             movimiento.setUsuarioId(usuarioId);
             movimiento.setAlgoritmo(algoritmo);
 
-            Movimientos movimientoRegistrado = movimientoService.registrarMovimiento(movimiento, null);
+            Movimientos movimientoRegistrado = movimientoService.registrarMovimiento(movimiento, null, null);
             mostrarExito("Salida registrada exitosamente.\nID: " + movimientoRegistrado.getMovimientoId());
             return true;
 

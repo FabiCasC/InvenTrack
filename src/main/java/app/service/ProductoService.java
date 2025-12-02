@@ -5,6 +5,8 @@ import app.model.Productos;
 import app.repository.ProductoRepository;
 import app.repository.ProveedorRepository;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import com.google.cloud.firestore.Firestore;
@@ -16,7 +18,7 @@ public class ProductoService {
     private final Firestore db;
     private final ProductoRepository productoRepository;
     private final ProveedorRepository proveedorRepository;
-    private final String COLLECTION_PRODUCTOS = "Productos";
+    private final String COLLECTION_PRODUCTOS = "productos";
     private final String COLLECTION_LOTES = "Lotes";
 
     public ProductoService() {
@@ -32,16 +34,25 @@ public class ProductoService {
             throw new IllegalArgumentException("El proveedor con ID " + producto.getProveedorId() + " no existe. Debe registrarlo primero.");
         }
         
+        // OBLIGATORIO: El stock inicial siempre es 0 para productos nuevos
+        // El stock solo se agrega mediante movimientos de entrada que crean lotes (RF3.1)
+        producto.setStock_actual(0);
+        
         // Guardar usando repository
         productoRepository.save(producto);
 
-        //validar si tienen algun tipo de metodo de rotacion
-        if (tieneMetodoRotacion(producto.getMetodo_rotacion()) && loteInicial != null) {
-            //generar el id del lote
+        // NOTA: Ya no se crean lotes iniciales automáticamente
+        // El stock se agrega mediante movimientos de entrada (RF3.1)
+        // Si hay stock inicial y se proporciona un lote inicial, se puede crear manualmente
+        // pero por defecto, los productos nuevos tienen stock = 0
+        if (loteInicial != null && loteInicial.getCantidad() > 0) {
+            // Solo crear lote si se proporciona explícitamente
             if (loteInicial.getLoteId() == null || loteInicial.getLoteId().trim().isEmpty()) {
                 loteInicial.setLoteId(generarLoteId(producto.getProductoId()));
             }
             registrarLoteInicial(producto.getProductoId(), loteInicial);
+            // Actualizar stock desde lotes
+            actualizarStockDesdeLotes(producto.getProductoId());
         }
 
         return producto;
@@ -181,5 +192,36 @@ public class ProductoService {
         return document.exists();
     }
     
+    /**
+     * Calcula el stock actual sumando todos los lotes del producto
+     * @param productoId ID del producto
+     * @return Suma de todas las cantidades de los lotes
+     */
+    private int calcularStockDesdeLotes(String productoId) throws ExecutionException, InterruptedException {
+        QuerySnapshot snapshot = db.collection(COLLECTION_PRODUCTOS)
+                .document(productoId)
+                .collection(COLLECTION_LOTES)
+                .get()
+                .get();
+        
+        int stockTotal = 0;
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Lotes lote = doc.toObject(Lotes.class);
+            if (lote != null) {
+                stockTotal += lote.getCantidad();
+            }
+        }
+        
+        return stockTotal;
+    }
+    
+    /**
+     * Actualiza el stock del producto calculándolo desde la suma de todos los lotes
+     * Esto garantiza que stock_actual = suma de todos los lotes
+     */
+    private void actualizarStockDesdeLotes(String productoId) throws ExecutionException, InterruptedException {
+        int nuevoStock = calcularStockDesdeLotes(productoId);
+        productoRepository.updateStock(productoId, nuevoStock);
+    }
     
 }

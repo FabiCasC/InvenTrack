@@ -4,6 +4,7 @@
  */
 package app.view;
 
+import app.utils.ColorConstants;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -26,30 +27,32 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         setClosable(true);
         setResizable(false);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(248, 248, 248));
-        setSize(900, 650);
+        getContentPane().setBackground(ColorConstants.BLANCO_HUMO);
+        setSize(970, 650);
 
         // PANEL PRINCIPAL
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(248, 248, 248));
+        mainPanel.setBackground(ColorConstants.BLANCO_HUMO);
         add(mainPanel, BorderLayout.CENTER);
 
         // ============================
         // HEADER SUPERIOR
         // ============================
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(248, 248, 248));
-        headerPanel.setBorder(new EmptyBorder(20, 25, 20, 25));
+        headerPanel.setBackground(ColorConstants.BLANCO_HUMO);
+        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
 
         JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(248, 248, 248));
+        titlePanel.setBackground(ColorConstants.BLANCO_HUMO);
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
 
         JLabel titleLabel = new JLabel("Pedidos");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titleLabel.setForeground(ColorConstants.GRIS_PIZARRA);
 
         JLabel subtitleLabel = new JLabel("Gestiona pedidos a tiendas y clientes");
-        subtitleLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
 
         titlePanel.add(titleLabel);
         titlePanel.add(Box.createVerticalStrut(5));
@@ -58,7 +61,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         btnNuevoPedido = new JButton(" +  Crear Pedido");
         btnNuevoPedido.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnNuevoPedido.setForeground(Color.WHITE);
-        btnNuevoPedido.setBackground(new Color(50, 50, 50));
+        btnNuevoPedido.setBackground(ColorConstants.AZUL_ACERO);
         btnNuevoPedido.setBorder(null);
         btnNuevoPedido.setFocusPainted(false);
         btnNuevoPedido.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -66,8 +69,8 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         
         // EVENTO: CREAR PEDIDO
         btnNuevoPedido.addActionListener(e -> {
-            // Este constructor ahora es válido gracias al cambio en ProductoFormInternal.java
-            ProductoFormInternal form = new ProductoFormInternal("nuevo");
+            PedidoFormInternal form = new PedidoFormInternal();
+            form.setSize(600, 550);
             getDesktopPane().add(form);
             form.setVisible(true);
         });
@@ -81,7 +84,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         // CONTENT PANEL
         // ============================
         JPanel content = new JPanel();
-        content.setBackground(new Color(248, 248, 248));
+        content.setBackground(ColorConstants.BLANCO_HUMO);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(new EmptyBorder(10, 25, 25, 25));
 
@@ -91,7 +94,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         // ESTADISTICAS
         // ============================
         JPanel stats = new JPanel(new GridLayout(1, 3, 20, 0));
-        stats.setBackground(new Color(248, 248, 248));
+        stats.setBackground(ColorConstants.BLANCO_HUMO);
 
         JPanel card1 = createStatCard("Total Pedidos");
         lblTotalPedidos = (JLabel) card1.getComponent(2);
@@ -113,9 +116,9 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         // *** PEDIDOS PENDIENTES ***
         // ============================================================
         JPanel cardPendientes = new JPanel(new BorderLayout());
-        cardPendientes.setBackground(Color.WHITE);
+        cardPendientes.setBackground(ColorConstants.BLANCO_PURO);
         cardPendientes.setBorder(new CompoundBorder(
-                new LineBorder(new Color(225, 225, 225), 1, true),
+                new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
                 new EmptyBorder(20, 20, 20, 20)
         ));
 
@@ -140,9 +143,9 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         // *** HISTORIAL DE PEDIDOS ***
         // ============================================================
         JPanel cardHistorial = new JPanel(new BorderLayout());
-        cardHistorial.setBackground(Color.WHITE);
+        cardHistorial.setBackground(ColorConstants.BLANCO_PURO);
         cardHistorial.setBorder(new CompoundBorder(
-                new LineBorder(new Color(225, 225, 225), 1, true),
+                new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
                 new EmptyBorder(20, 20, 20, 20)
         ));
 
@@ -167,22 +170,30 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
     // TARJETA DE ESTADÍSTICAS
     // =========================================================
     private JPanel createStatCard(String title) {
-
+        Color accentColor = ColorConstants.AZUL_ACERO;
+        if (title.contains("Pendientes")) accentColor = ColorConstants.AMARILLO_ADVERTENCIA;
+        if (title.contains("Completados")) accentColor = ColorConstants.VERDE_EXITO;
+        
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
+        card.setBackground(ColorConstants.BLANCO_PURO);
 
         card.setBorder(new CompoundBorder(
-                new LineBorder(new Color(230, 230, 230), 1, true),
-                new EmptyBorder(15, 15, 15, 15)
+                new MatteBorder(2, 0, 0, 0, accentColor),
+                new CompoundBorder(
+                    new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
+                    new EmptyBorder(15, 15, 15, 15)
+                )
         ));
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTitle.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblValue = new JLabel("—");
         lblValue.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblValue.setForeground(accentColor);
         lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         card.add(lblTitle);
@@ -198,9 +209,9 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
     public JPanel addPedidoPendiente(String codigo, String cliente, String fecha, String detalle, int total) {
 
         JPanel item = new JPanel(new BorderLayout());
-        item.setBackground(Color.WHITE);
+        item.setBackground(ColorConstants.BLANCO_PURO);
         item.setBorder(new CompoundBorder(
-                new LineBorder(new Color(225, 225, 225), 1, true),
+                new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
                 new EmptyBorder(15, 15, 15, 15)
         ));
 
@@ -217,7 +228,7 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
 
         JLabel chip = new JLabel("Pendiente");
         chip.setOpaque(true);
-        chip.setBackground(new Color(240, 240, 240));
+            chip.setBackground(ColorConstants.GRIS_CLARO);
         chip.setBorder(new EmptyBorder(3, 8, 3, 8));
 
         left.add(lblCod);
@@ -228,13 +239,20 @@ public class PedidosInternal extends javax.swing.JInternalFrame {
         right.setOpaque(false);
 
         JButton btnCompletar = new JButton("Completar");
-        btnCompletar.setBackground(new Color(30, 30, 30));
+        btnCompletar.setBackground(ColorConstants.VERDE_EXITO);
         btnCompletar.setForeground(Color.WHITE);
-        btnCompletar.setBorder(new EmptyBorder(5, 10, 5, 10));
+        btnCompletar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCompletar.setBorder(new EmptyBorder(5, 12, 5, 12));
+        btnCompletar.setFocusPainted(false);
+        btnCompletar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JButton btnCancelar = new JButton("Cancelar");
-        btnCancelar.setBackground(new Color(240, 240, 240));
-        btnCancelar.setBorder(new EmptyBorder(5, 10, 5, 10));
+        btnCancelar.setBackground(ColorConstants.GRIS_NEUTRO);
+        btnCancelar.setForeground(Color.WHITE);
+        btnCancelar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCancelar.setBorder(new EmptyBorder(5, 12, 5, 12));
+        btnCancelar.setFocusPainted(false);
+        btnCancelar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         right.add(btnCompletar);
         right.add(btnCancelar);

@@ -4,6 +4,8 @@ import app.config.FirebaseConfig;
 import app.model.Lotes;
 import app.model.Movimientos;
 import app.model.Productos;
+import app.structures.ColaFIFO;
+import app.structures.PilaLIFO;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -17,16 +19,18 @@ import java.util.concurrent.ExecutionException;
 
 public class MovimientoService {
     private final Firestore db;
-    private final String COLLECTION_MOVIMIENTOS = "Movimientos";
-    private final String COLLECTION_PRODUCTOS = "Productos";
+    private final String COLLECTION_MOVIMIENTOS = "movimientos";
+    private final String COLLECTION_PRODUCTOS = "productos";
     private final String COLLECTION_LOTES = "Lotes";
+    private final AlgoritmoManager algoritmoManager;
     
     public MovimientoService() {
         this.db = FirestoreClient.getFirestore();
+        this.algoritmoManager = AlgoritmoManager.getInstance();
     }
     
     //registrar movimientos 
-    public Movimientos registrarMovimiento(Movimientos movimiento, String loteId) throws ExecutionException, InterruptedException {
+    public Movimientos registrarMovimiento(Movimientos movimiento, String loteId, Date fechaVencimiento) throws ExecutionException, InterruptedException {
         validarMovimiento(movimiento);
         
         //validar que el producto existe y obtener datos
@@ -61,7 +65,7 @@ public class MovimientoService {
         
         //procesar segun el movimiento
         if (movimiento.getTipo_movimiento().equalsIgnoreCase("entrada")) {
-            procesarEntrada(movimiento, producto, loteId);
+            procesarEntrada(movimiento, producto, loteId, fechaVencimiento);
         } else if (movimiento.getTipo_movimiento().equalsIgnoreCase("salida")) {
             procesarSalida(movimiento, producto);
         } else {
@@ -74,67 +78,204 @@ public class MovimientoService {
                 .set(movimiento)
                 .get();
         
+        // RF4.3 - Agregar movimiento a la lista enlazada
+        algoritmoManager.agregarMovimientoALista(movimiento);
+        
+        // RF4.1 y RF4.2 - Inicializar estructuras para el producto si es necesario
+        algoritmoManager.inicializarEstructura(producto);
+        
         System.out.println("Movimiento registrado: " + movimiento.getMovimientoId());
         return movimiento;
     }
     
-    private void procesarEntrada(Movimientos movimiento, Productos producto, String loteId) throws ExecutionException, InterruptedException {
+    private void procesarEntrada(Movimientos movimiento, Productos producto, String loteId, Date fechaVencimiento) throws ExecutionException, InterruptedException {
         //validar que stock no sea maximo
-        int nuevoStock = producto.getStock_actual() + movimiento.getCantidad();
+        int stockActual = calcularStockDesdeLotes(producto.getProductoId());
+        int nuevoStock = stockActual + movimiento.getCantidad();
+        
         if (nuevoStock > producto.getStock_maximo()) {
             throw new IllegalArgumentException("La entrada excede el stock máximo (" + producto.getStock_maximo() + ")");
         }
         
-        //si tiene metodo de rotacion crear o actualizar lote
-        if (tieneMetodoRotacion(producto.getMetodo_rotacion())) {
-            if (loteId == null || loteId.trim().isEmpty()) {
-                loteId = generarLoteId(producto.getProductoId());
-            }
-            
-            //crea un nuevo lote con una cantidad de entrada
-            Lotes nuevoLote = new Lotes();
-            nuevoLote.setLoteId(loteId);
-            nuevoLote.setCantidad(movimiento.getCantidad());
-            nuevoLote.setFecha_Entrada(movimiento.getFecha());
-            
-            //calculo de fecha de vencimiento
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(movimiento.getFecha());
-            cal.add(Calendar.DAY_OF_MONTH, 30);
-            nuevoLote.setFecha_Vencimiento(cal.getTime());
-            
-            //guardar lote
-            db.collection(COLLECTION_PRODUCTOS)
-                    .document(producto.getProductoId())
-                    .collection(COLLECTION_LOTES)
-                    .document(loteId)
-                    .set(nuevoLote)
-                    .get();
+        // OBLIGATORIO: Siempre crear un lote para cada entrada
+        if (loteId == null || loteId.trim().isEmpty()) {
+            loteId = generarLoteId(producto.getProductoId());
         }
         
-        //actualizar stock del producto
-        actualizarStockProducto(producto.getProductoId(), nuevoStock);
+        // Crear un nuevo lote con la cantidad de entrada
+        Lotes nuevoLote = new Lotes();
+        nuevoLote.setLoteId(loteId);
+        nuevoLote.setCantidad(movimiento.getCantidad());
+        nuevoLote.setFecha_Entrada(movimiento.getFecha());
         
-        System.out.println("Entrada procesada stock actual: " + nuevoStock);
+        // Calcular o usar fecha de vencimiento
+        if (fechaVencimiento != null) {
+            nuevoLote.setFecha_Vencimiento(fechaVencimiento);
+        } else {
+            // Si no se proporciona, calcular automáticamente según el tipo de producto
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(movimiento.getFecha());
+            
+            // Perecibles: 30 días, No perecibles: 365 días
+            if (producto.getTipo() != null && producto.getTipo().equalsIgnoreCase("Perecible")) {
+                cal.add(Calendar.DAY_OF_MONTH, 30);
+            } else {
+                cal.add(Calendar.DAY_OF_YEAR, 365);
+            }
+            nuevoLote.setFecha_Vencimiento(cal.getTime());
+        }
+        
+        // Guardar lote en Firebase
+        db.collection(COLLECTION_PRODUCTOS)
+                .document(producto.getProductoId())
+                .collection(COLLECTION_LOTES)
+                .document(loteId)
+                .set(nuevoLote)
+                .get();
+        
+        // RF4.1 y RF4.2 - Agregar lote a la estructura correspondiente según el método de rotación
+        String metodo = producto.getMetodo_rotacion();
+        if (metodo != null && metodo.equalsIgnoreCase("FIFO")) {
+            // RF4.1 - Producto perecible: encolar en la cola FIFO
+            ColaFIFO cola = algoritmoManager.obtenerColaFIFO(producto.getProductoId());
+            cola.encolar(nuevoLote);
+            System.out.println("Lote agregado a Cola FIFO. Tamaño de cola: " + cola.getTamaño());
+        } else if (metodo != null && metodo.equalsIgnoreCase("LIFO")) {
+            // RF4.2 - Producto no perecible: push en la pila LIFO
+            PilaLIFO pila = algoritmoManager.obtenerPilaLIFO(producto.getProductoId());
+            pila.push(nuevoLote);
+            System.out.println("Lote agregado a Pila LIFO. Tamaño de pila: " + pila.getTamaño());
+        }
+        
+        // Actualizar stock del producto como suma de todos los lotes
+        actualizarStockDesdeLotes(producto.getProductoId());
+        
+        System.out.println("Entrada procesada. Lote creado: " + loteId + ", Nuevo stock: " + calcularStockDesdeLotes(producto.getProductoId()));
     }
     
     
     private void procesarSalida(Movimientos movimiento, Productos producto) throws ExecutionException, InterruptedException {
+        // Calcular stock actual desde los lotes
+        int stockActual = calcularStockDesdeLotes(producto.getProductoId());
+        
         //validar que hay stock suficiente
-        if (producto.getStock_actual() < movimiento.getCantidad()) {
-            throw new IllegalArgumentException("Stock insuficiente. Disponible: " + producto.getStock_actual());
+        if (stockActual < movimiento.getCantidad()) {
+            throw new IllegalArgumentException("Stock insuficiente. Disponible: " + stockActual);
         }
         
-        //si tiene metodo de rotacion aplicar uno fifo lifo etc
-        if (tieneMetodoRotacion(producto.getMetodo_rotacion())) {
+        // RF4.1 y RF4.2 - Usar estructuras de datos según el método de rotación
+        String metodo = producto.getMetodo_rotacion();
+        
+        if (metodo != null && metodo.equalsIgnoreCase("FIFO")) {
+            // RF4.1 - Producto perecible: usar cola FIFO
+            procesarSalidaFIFO(producto, movimiento.getCantidad());
+        } else if (metodo != null && metodo.equalsIgnoreCase("LIFO")) {
+            // RF4.2 - Producto no perecible: usar pila LIFO
+            procesarSalidaLIFO(producto, movimiento.getCantidad());
+        } else {
+            // DRIFO o sin método: usar algoritmo tradicional
             aplicarAlgoritmoRotacion(producto, movimiento.getCantidad());
         }
         
-        // actualizar stock del producto
-        int nuevoStock = producto.getStock_actual() - movimiento.getCantidad();
-        actualizarStockProducto(producto.getProductoId(), nuevoStock);
+        // Actualizar stock del producto como suma de todos los lotes restantes
+        actualizarStockDesdeLotes(producto.getProductoId());
         
+        int nuevoStock = calcularStockDesdeLotes(producto.getProductoId());
         System.out.println("Salida procesada. Nuevo stock: " + nuevoStock);
+    }
+    
+    /**
+     * RF4.1 - Procesar salida usando Cola FIFO para productos perecibles
+     * El primer producto ingresado es el primero en salir
+     */
+    private void procesarSalidaFIFO(Productos producto, int cantidadSalida) throws ExecutionException, InterruptedException {
+        ColaFIFO cola = algoritmoManager.obtenerColaFIFO(producto.getProductoId());
+        
+        // Si la cola está vacía, recargar desde Firebase
+        if (cola.estaVacia()) {
+            algoritmoManager.cargarLotesEnColaFIFO(producto.getProductoId());
+            cola = algoritmoManager.obtenerColaFIFO(producto.getProductoId());
+        }
+        
+        int cantidadRestante = cantidadSalida;
+        
+        // RF4.1 - Desencolar lotes hasta cubrir la cantidad solicitada
+        while (cantidadRestante > 0 && !cola.estaVacia()) {
+            Lotes lote = cola.desencolar(); // El primer producto ingresado sale primero
+            
+            if (lote.getCantidad() >= cantidadRestante) {
+                // Lote con stock suficiente - reducir cantidad
+                lote.setCantidad(lote.getCantidad() - cantidadRestante);
+                
+                if (lote.getCantidad() > 0) {
+                    // Actualizar lote si aún tiene stock
+                    actualizarLote(producto.getProductoId(), lote);
+                    // Volver a encolar el lote restante
+                    cola.encolar(lote);
+                } else {
+                    // Eliminar lote si se agotó completamente
+                    eliminarLote(producto.getProductoId(), lote.getLoteId());
+                }
+                cantidadRestante = 0;
+            } else {
+                // Agotar completamente el lote y seguir con el siguiente
+                cantidadRestante -= lote.getCantidad();
+                eliminarLote(producto.getProductoId(), lote.getLoteId());
+            }
+        }
+        
+        if (cantidadRestante > 0) {
+            throw new IllegalStateException("No hay suficientes lotes para cubrir la salida");
+        }
+    }
+    
+    /**
+     * RF4.2 - Procesar salida usando Pila LIFO para productos no perecibles
+     * El último producto ingresado es el primero en salir
+     */
+    private void procesarSalidaLIFO(Productos producto, int cantidadSalida) throws ExecutionException, InterruptedException {
+        PilaLIFO pila = algoritmoManager.obtenerPilaLIFO(producto.getProductoId());
+        
+        // Si la pila está vacía, recargar desde Firebase
+        if (pila.estaVacia()) {
+            algoritmoManager.cargarLotesEnPilaLIFO(producto.getProductoId());
+            pila = algoritmoManager.obtenerPilaLIFO(producto.getProductoId());
+        }
+        
+        int cantidadRestante = cantidadSalida;
+        java.util.Stack<Lotes> lotesTemporales = new java.util.Stack<>();
+        
+        // RF4.2 - Desapilar lotes hasta cubrir la cantidad solicitada
+        while (cantidadRestante > 0 && !pila.estaVacia()) {
+            Lotes lote = pila.pop(); // El último producto ingresado sale primero
+            
+            if (lote.getCantidad() >= cantidadRestante) {
+                // Lote con stock suficiente - reducir cantidad
+                lote.setCantidad(lote.getCantidad() - cantidadRestante);
+                
+                if (lote.getCantidad() > 0) {
+                    // Guardar para volver a apilar después
+                    lotesTemporales.push(lote);
+                } else {
+                    // Eliminar lote si se agotó completamente
+                    eliminarLote(producto.getProductoId(), lote.getLoteId());
+                }
+                cantidadRestante = 0;
+            } else {
+                // Agotar completamente el lote
+                cantidadRestante -= lote.getCantidad();
+                eliminarLote(producto.getProductoId(), lote.getLoteId());
+            }
+        }
+        
+        // Volver a apilar los lotes que quedaron con stock
+        while (!lotesTemporales.isEmpty()) {
+            pila.push(lotesTemporales.pop());
+        }
+        
+        if (cantidadRestante > 0) {
+            throw new IllegalStateException("No hay suficientes lotes para cubrir la salida");
+        }
     }
     
     private void aplicarAlgoritmoRotacion(Productos producto, int cantidadSalida) throws ExecutionException, InterruptedException {
@@ -150,12 +291,19 @@ public class MovimientoService {
             if (cantidadRestante <= 0) break;
             
             if (lote.getCantidad() >= cantidadRestante) {
-                //lote con stock suficiente
+                // Lote con stock suficiente - reducir cantidad
                 lote.setCantidad(lote.getCantidad() - cantidadRestante);
-                actualizarLote(producto.getProductoId(), lote);
+                
+                if (lote.getCantidad() > 0) {
+                    // Actualizar lote si aún tiene stock
+                    actualizarLote(producto.getProductoId(), lote);
+                } else {
+                    // Eliminar lote si se agotó completamente
+                    eliminarLote(producto.getProductoId(), lote.getLoteId());
+                }
                 cantidadRestante = 0;
             } else {
-                //agotar con el lote y seguir con el siguiente
+                // Agotar completamente el lote y seguir con el siguiente
                 cantidadRestante -= lote.getCantidad();
                 eliminarLote(producto.getProductoId(), lote.getLoteId());
             }
@@ -176,21 +324,36 @@ public class MovimientoService {
                 .get();
         
         for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
-            lotes.add(doc.toObject(Lotes.class));
+            Lotes lote = doc.toObject(Lotes.class);
+            if (lote != null) {
+                lotes.add(lote);
+            }
         }
         
-        //ordenar los algoritmos
+        // Ordenar según algoritmo de rotación
         String algoritmo = producto.getMetodo_rotacion();
         
-        if (algoritmo.equalsIgnoreCase("FIFO")) {
-            //FIFO
+        if (algoritmo != null) {
+            if (algoritmo.equalsIgnoreCase("FIFO")) {
+                // FIFO: Primero en entrar, primero en salir
+                lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada));
+            } else if (algoritmo.equalsIgnoreCase("LIFO")) {
+                // LIFO: Último en entrar, primero en salir
+                lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada).reversed());
+            } else if (algoritmo.equalsIgnoreCase("DRIFO")) {
+                // DRIFO: Ordenar por fecha de vencimiento (lo que vence primero sale primero)
+                // Manejar nulls: lotes sin fecha de vencimiento van al final
+                lotes.sort(Comparator.comparing(
+                    Lotes::getFecha_Vencimiento, 
+                    Comparator.nullsLast(Comparator.naturalOrder())
+                ));
+            } else {
+                // Si no hay algoritmo válido, usar FIFO por defecto
+                lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada));
+            }
+        } else {
+            // Si no hay algoritmo, usar FIFO por defecto
             lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada));
-        } else if (algoritmo.equalsIgnoreCase("LIFO")) {
-            //LIFO
-            lotes.sort(Comparator.comparing(Lotes::getFecha_Entrada).reversed());
-        } else if (algoritmo.equalsIgnoreCase("DRIFO")) {
-            //DRIFO
-            lotes.sort(Comparator.comparing(Lotes::getFecha_Vencimiento));
         }
         
         return lotes;
@@ -230,6 +393,38 @@ public class MovimientoService {
                 .document(productoId)
                 .update("stock_actual", nuevoStock)
                 .get();
+    }
+    
+    /**
+     * Calcula el stock actual sumando todos los lotes del producto
+     * @param productoId ID del producto
+     * @return Suma de todas las cantidades de los lotes
+     */
+    private int calcularStockDesdeLotes(String productoId) throws ExecutionException, InterruptedException {
+        QuerySnapshot snapshot = db.collection(COLLECTION_PRODUCTOS)
+                .document(productoId)
+                .collection(COLLECTION_LOTES)
+                .get()
+                .get();
+        
+        int stockTotal = 0;
+        for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+            Lotes lote = doc.toObject(Lotes.class);
+            if (lote != null) {
+                stockTotal += lote.getCantidad();
+            }
+        }
+        
+        return stockTotal;
+    }
+    
+    /**
+     * Actualiza el stock del producto calculándolo desde la suma de todos los lotes
+     * Esto garantiza que stock_actual = suma de todos los lotes
+     */
+    private void actualizarStockDesdeLotes(String productoId) throws ExecutionException, InterruptedException {
+        int nuevoStock = calcularStockDesdeLotes(productoId);
+        actualizarStockProducto(productoId, nuevoStock);
     }
     
     private void actualizarLote(String productoId, Lotes lote) throws ExecutionException, InterruptedException {

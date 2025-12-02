@@ -1,9 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
- */
 package app.view;
 
+import app.utils.ColorConstants;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -18,102 +15,95 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
     public JPanel panelProveedores;
 
     public ProveedoresInternal() {
-
-        // -------- CONFIG GENERAL --------
         setTitle("Proveedores");
         setBorder(null);
         setClosable(true);
         setResizable(false);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(248, 248, 248));
-        setSize(1000, 650);
+        getContentPane().setBackground(ColorConstants.BLANCO_HUMO);
+        setSize(970, 650);
 
         JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(new Color(248, 248, 248));
+        main.setBackground(ColorConstants.BLANCO_HUMO);
         add(main, BorderLayout.CENTER);
 
-        // =============================
         // HEADER
-        // =============================
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(248, 248, 248));
-        header.setBorder(new EmptyBorder(20, 25, 20, 25));
+        header.setBackground(ColorConstants.BLANCO_HUMO);
+        header.setBorder(new EmptyBorder(15, 20, 15, 20));
 
         JPanel titleBox = new JPanel();
-        titleBox.setBackground(new Color(248, 248, 248));
+        titleBox.setBackground(ColorConstants.BLANCO_HUMO);
         titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Proveedores");
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        title.setForeground(ColorConstants.GRIS_PIZARRA);
 
         JLabel subtitle = new JLabel("Gestión de proveedores de productos lácteos");
-        subtitle.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitle.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
 
         titleBox.add(title);
         titleBox.add(Box.createVerticalStrut(5));
         titleBox.add(subtitle);
 
         header.add(titleBox, BorderLayout.WEST);
-        
         main.add(header, BorderLayout.NORTH);
 
-        // =============================
         // CONTENT
-        // =============================
         JPanel content = new JPanel();
-        content.setBackground(new Color(248, 248, 248));
+        content.setBackground(ColorConstants.BLANCO_HUMO);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setBorder(new EmptyBorder(10, 25, 25, 25));
+        content.setBorder(new EmptyBorder(10, 20, 20, 20));
         main.add(content);
 
-        // =============================
         // STATS
-        // =============================
-        JPanel statsRow = new JPanel(new GridLayout(1, 4, 20, 0));
-        statsRow.setBackground(new Color(248, 248, 248));
+        JPanel statsRow = new JPanel(new GridLayout(1, 4, 15, 0));
+        statsRow.setBackground(ColorConstants.BLANCO_HUMO);
 
         lblTotalProv = new JLabel("—");
         lblActivos = new JLabel("—");
         lblAlertas = new JLabel("—");
 
-        statsRow.add(createStatCard("Total Proveedores", lblTotalProv));
-        statsRow.add(createStatCard("Proveedores Activos", lblActivos));
-        statsRow.add(createStatCard("En Alerta", lblAlertas));
-        statsRow.add(createStatCard("Entregas Este Mes", new JLabel("—")));
+        statsRow.add(createStatCard("Total Proveedores", lblTotalProv, ColorConstants.AZUL_ACERO));
+        statsRow.add(createStatCard("Proveedores Activos", lblActivos, ColorConstants.VERDE_EXITO));
+        statsRow.add(createStatCard("En Alerta", lblAlertas, ColorConstants.AMARILLO_ADVERTENCIA));
+        statsRow.add(createStatCard("Entregas Este Mes", new JLabel("—"), ColorConstants.CIAN));
 
         content.add(statsRow);
-        content.add(Box.createVerticalStrut(20));
+        content.add(Box.createVerticalStrut(15));
 
-        // =============================
         // LISTA DE PROVEEDORES
-        // =============================
         panelProveedores = new JPanel();
-        panelProveedores.setBackground(new Color(248, 248, 248));
+        panelProveedores.setBackground(ColorConstants.BLANCO_HUMO);
         panelProveedores.setLayout(new BoxLayout(panelProveedores, BoxLayout.Y_AXIS));
 
         JScrollPane scroll = new JScrollPane(panelProveedores);
         scroll.setBorder(null);
+        scroll.getViewport().setBackground(ColorConstants.BLANCO_HUMO);
 
         content.add(scroll);
     }
 
-    // ----------------------------------------
-    // TARJETA ESTADÍSTICA
-    // ----------------------------------------
-    private JPanel createStatCard(String title, JLabel valueLabel) {
-
+    private JPanel createStatCard(String title, JLabel valueLabel, Color accentColor) {
         JPanel card = new JPanel();
-        card.setBackground(Color.WHITE);
+        card.setBackground(ColorConstants.BLANCO_PURO);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new CompoundBorder(
-                new LineBorder(new Color(225, 225, 225), 1, true),
+            new MatteBorder(2, 0, 0, 0, accentColor),
+            new CompoundBorder(
+                new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
                 new EmptyBorder(15, 15, 15, 15)
+            )
         ));
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTitle.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
 
         valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        valueLabel.setForeground(accentColor);
 
         card.add(lblTitle);
         card.add(Box.createVerticalStrut(5));
@@ -122,9 +112,6 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         return card;
     }
 
-    // ===============================================================
-    // MÉTODO PARA AÑADIR UN PROVEEDOR — SOLO VISTA
-    // ===============================================================
     public JPanel addProveedorCard(
             String nombreProveedor,
             String contacto,
@@ -135,43 +122,50 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
             String ultimaEntrega,
             int entregasTotales,
             int confiabilidad,
-            String estado // “Activo” o “Alerta”
+            String estado // "Activo" o "Alerta"
     ) {
-
         JPanel card = new JPanel();
         card.setLayout(new BorderLayout());
-        card.setBackground(Color.WHITE);
+        card.setBackground(ColorConstants.BLANCO_PURO);
         card.setBorder(new CompoundBorder(
-                new LineBorder(new Color(230, 230, 230), 1, true),
-                new EmptyBorder(20, 20, 20, 20)
+            new LineBorder(ColorConstants.GRIS_CLARO, 1, true),
+            new EmptyBorder(20, 20, 20, 20)
         ));
 
-        // =================== IZQUIERDA ===================
+        // IZQUIERDA
         JPanel left = new JPanel();
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-        left.setBackground(Color.WHITE);
+        left.setBackground(ColorConstants.BLANCO_PURO);
 
         JLabel title = new JLabel(nombreProveedor);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setForeground(ColorConstants.GRIS_PIZARRA);
 
         JLabel lblContacto = new JLabel("Contacto: " + contacto);
         JLabel lblTel = new JLabel("📞 " + telefono);
         JLabel lblCorreo = new JLabel("✉ " + correo);
         JLabel lblDir = new JLabel("📍 " + direccion);
 
-        lblContacto.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        lblTel.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        lblCorreo.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        lblDir.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblContacto.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblCorreo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblDir.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        
+        lblContacto.setForeground(ColorConstants.GRIS_PIZARRA);
+        lblTel.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+        lblCorreo.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+        lblDir.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
 
         // CHIPS DE PRODUCTOS
         JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        chips.setBackground(Color.WHITE);
+        chips.setBackground(ColorConstants.BLANCO_PURO);
 
         for (String p : productos) {
             JLabel chip = new JLabel(p);
             chip.setOpaque(true);
-            chip.setBackground(new Color(245, 245, 245));
+            chip.setBackground(ColorConstants.GRIS_TENUE);
+            chip.setForeground(ColorConstants.GRIS_PIZARRA);
+            chip.setFont(new Font("Segoe UI", Font.PLAIN, 11));
             chip.setBorder(new EmptyBorder(4, 8, 4, 8));
             chips.add(chip);
         }
@@ -185,29 +179,36 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         left.add(Box.createVerticalStrut(10));
         left.add(chips);
 
-        // =================== DERECHA ===================
+        // DERECHA
         JPanel right = new JPanel();
         right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-        right.setBackground(Color.WHITE);
+        right.setBackground(ColorConstants.BLANCO_PURO);
         right.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
         JLabel lblEntrega = new JLabel("Última Entrega: " + ultimaEntrega);
         JLabel lblTotal = new JLabel("Entregas Totales: " + entregasTotales);
         JLabel lblConf = new JLabel("Confiabilidad: " + confiabilidad + "%");
 
-        lblEntrega.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lblTotal.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lblConf.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lblEntrega.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblTotal.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblConf.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        
+        lblEntrega.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+        lblTotal.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
+        lblConf.setForeground(ColorConstants.GRIS_PIZARRA);
 
         JLabel chipEstado = new JLabel(estado);
         chipEstado.setOpaque(true);
+        chipEstado.setFont(new Font("Segoe UI", Font.BOLD, 12));
         chipEstado.setBorder(new EmptyBorder(5, 10, 5, 10));
 
+        // Usar colores de alertas
         if (estado.equalsIgnoreCase("Activo")) {
-            chipEstado.setBackground(new Color(37, 213, 98));
+            chipEstado.setBackground(ColorConstants.VERDE_EXITO);
             chipEstado.setForeground(Color.WHITE);
         } else {
-            chipEstado.setBackground(new Color(255, 204, 153));
+            chipEstado.setBackground(ColorConstants.AMARILLO_ADVERTENCIA);
+            chipEstado.setForeground(Color.WHITE);
         }
 
         right.add(lblEntrega);
@@ -221,21 +222,14 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
         card.add(right, BorderLayout.EAST);
 
         panelProveedores.add(card);
-        panelProveedores.add(Box.createVerticalStrut(20));
+        panelProveedores.add(Box.createVerticalStrut(15));
         panelProveedores.revalidate();
 
         return card;
     }
-    
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
 
+    @SuppressWarnings("unchecked")
+    private void initComponents() {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -246,11 +240,6 @@ public class ProveedoresInternal extends javax.swing.JInternalFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 274, Short.MAX_VALUE)
         );
-
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
+    }
 }

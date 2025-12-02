@@ -18,8 +18,7 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
         setClosable(true);
         setIconifiable(true);
         setResizable(true);
-        setSize(450, 600);
-        setTitle("Nuevo Pedido");
+        setSize(600, 550);
 
         // ================================
         // PANEL PRINCIPAL

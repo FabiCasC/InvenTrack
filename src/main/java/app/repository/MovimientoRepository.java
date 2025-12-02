@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class MovimientoRepository {
     private final Firestore db;
-    private static final String COLLECTION_NAME = "Movimientos";
+    private static final String COLLECTION_NAME = "movimientos";
 
     public MovimientoRepository() {
         this.db = FirebaseConfig.getFirestore();

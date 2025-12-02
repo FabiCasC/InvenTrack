@@ -1,9 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
- */
 package app.view;
 
+import app.utils.ColorConstants;
 import javax.swing.*;
 import java.awt.*;
 
@@ -20,33 +17,32 @@ public class DashboardInternal extends javax.swing.JInternalFrame {
     public JTextArea txtAltaDemanda;
 
     public DashboardInternal() {
-
         setTitle("Dashboard");
         setClosable(false);
         setMaximizable(false);
         setIconifiable(false);
         setResizable(false);
         setBorder(null);
-        setSize(900, 650);
+        setSize(970, 650);
 
         JPanel main = new JPanel();
-        main.setBackground(new Color(245, 245, 245));
+        main.setBackground(ColorConstants.BLANCO_HUMO);
         main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-        main.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        main.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         //-------------------------------------
         // TÍTULO
         //-------------------------------------
         JLabel title = new JLabel("Dashboard");
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        title.setForeground(new Color(60, 60, 60));
+        title.setForeground(ColorConstants.GRIS_PIZARRA);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         main.add(title);
-        main.add(Box.createVerticalStrut(20));
+        main.add(Box.createVerticalStrut(15));
 
         //-------------------------------------
-        // TARJETAS SUPERIORES (vacías)
+        // TARJETAS SUPERIORES
         //-------------------------------------
         JPanel cards = new JPanel(new GridLayout(1, 4, 15, 0));
         cards.setOpaque(false);
@@ -56,46 +52,49 @@ public class DashboardInternal extends javax.swing.JInternalFrame {
         lblStockBajo = new JLabel("—");
         lblPedidosPendientes = new JLabel("—");
 
-        cards.add(createCard("Total Productos", lblTotalProductos));
-        cards.add(createCard("Alertas de Vencimiento", lblAlertas));
-        cards.add(createCard("Stock Bajo", lblStockBajo));
-        cards.add(createCard("Pedidos Pendientes", lblPedidosPendientes));
+        cards.add(createCard("Total Productos", lblTotalProductos, ColorConstants.AZUL_ACERO));
+        cards.add(createCard("Alertas de Vencimiento", lblAlertas, ColorConstants.AMARILLO_ADVERTENCIA));
+        cards.add(createCard("Stock Bajo", lblStockBajo, ColorConstants.ROJO_ALERTA));
+        cards.add(createCard("Pedidos Pendientes", lblPedidosPendientes, ColorConstants.VERDE_EXITO));
 
         main.add(cards);
-        main.add(Box.createVerticalStrut(20));
+        main.add(Box.createVerticalStrut(15));
 
         //-------------------------------------
-        // SECCIONES (solo UI)
+        // SECCIONES
         //-------------------------------------
         txtLotes = new JTextArea();
         txtStockBajo = new JTextArea();
         txtAltaDemanda = new JTextArea();
 
-        main.add(createSection("Lotes Próximos a Vencer", txtLotes));
-        main.add(Box.createVerticalStrut(20));
+        main.add(createSection("Lotes Próximos a Vencer", txtLotes, ColorConstants.AMARILLO_ADVERTENCIA));
+        main.add(Box.createVerticalStrut(12));
 
-        main.add(createSection("Stock Bajo", txtStockBajo));
-        main.add(Box.createVerticalStrut(20));
+        main.add(createSection("Stock Bajo", txtStockBajo, ColorConstants.ROJO_ALERTA));
+        main.add(Box.createVerticalStrut(12));
 
-        main.add(createSection("Alta Demanda", txtAltaDemanda));
+        main.add(createSection("Alta Demanda", txtAltaDemanda, ColorConstants.VERDE_ESMERALDA));
 
         add(main);
     }
 
-    // TARJETA (UI)
-    private JPanel createCard(String title, JLabel dynamicLabel) {
+    // TARJETA con color de acento
+    private JPanel createCard(String title, JLabel dynamicLabel, Color accentColor) {
         JPanel card = new JPanel();
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
+        card.setBackground(ColorConstants.BLANCO_PURO);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, accentColor),
+            BorderFactory.createLineBorder(ColorConstants.GRIS_CLARO)
+        ));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setPreferredSize(new Dimension(150, 90));
+        card.setPreferredSize(new Dimension(140, 95));
 
         JLabel l1 = new JLabel(title);
-        l1.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        l1.setForeground(new Color(90, 90, 90));
+        l1.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        l1.setForeground(ColorConstants.GRIS_TEXTO_SECUNDARIO);
 
-        dynamicLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        dynamicLabel.setForeground(new Color(40, 40, 40));
+        dynamicLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        dynamicLabel.setForeground(accentColor);
 
         l1.setAlignmentX(Component.CENTER_ALIGNMENT);
         dynamicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -103,27 +102,32 @@ public class DashboardInternal extends javax.swing.JInternalFrame {
         card.add(Box.createVerticalStrut(10));
         card.add(l1);
         card.add(dynamicLabel);
+        card.add(Box.createVerticalStrut(10));
 
         return card;
     }
 
-    // SECCIÓN (UI)
-    private JPanel createSection(String title, JTextArea area) {
+    // SECCIÓN con color de acento
+    private JPanel createSection(String title, JTextArea area, Color accentColor) {
         JPanel section = new JPanel();
-        section.setBackground(Color.WHITE);
+        section.setBackground(ColorConstants.BLANCO_PURO);
         section.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createMatteBorder(2, 0, 0, 0, accentColor),
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ColorConstants.GRIS_CLARO),
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            )
         ));
         section.setLayout(new BorderLayout());
 
         JLabel t = new JLabel(title);
         t.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        t.setForeground(new Color(60, 60, 60));
+        t.setForeground(ColorConstants.GRIS_PIZARRA);
 
         area.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         area.setEditable(false);
-        area.setBackground(Color.WHITE);
+        area.setBackground(ColorConstants.BLANCO_PURO);
+        area.setForeground(ColorConstants.GRIS_PIZARRA);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
 
@@ -133,15 +137,8 @@ public class DashboardInternal extends javax.swing.JInternalFrame {
         return section;
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -152,11 +149,6 @@ public class DashboardInternal extends javax.swing.JInternalFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 274, Short.MAX_VALUE)
         );
-
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
+    }
 }
