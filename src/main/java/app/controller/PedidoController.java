@@ -27,7 +27,7 @@ public class PedidoController {
             pedido.setCliente(cliente);
             pedido.setCantidadSolicitada(cantidadSolicitada);
             pedido.setFecha(new Date());
-            pedido.setEstado("Pendiente");
+            pedido.setEstado("pendiente"); // Normalizado a minúscula para consistencia
 
             Pedidos pedidoRegistrado = pedidoService.registrarPedido(pedido);
             mostrarExito("Pedido registrado exitosamente.\nID: " + pedidoRegistrado.getPedidoId());

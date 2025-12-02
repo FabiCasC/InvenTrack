@@ -4,15 +4,43 @@
  */
 package app.view;
 
+import app.controller.PedidoController;
+import app.controller.ProductoController;
+import app.model.Productos;
 import javax.swing.*;
 import javax.swing.border.*;
-import java.awt.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PedidoFormInternal extends javax.swing.JInternalFrame {
+    
+    private PedidoController pedidoController;
+    private ProductoController productoController;
+    private JTextField txtDestino;
+    private JComboBox<String> comboProducto;
+    private JTextField txtCantidad;
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private Map<String, String> productosMap; // nombreCompleto -> productoId
+    private Map<String, Productos> productosData; // productoId -> Productos
+    private List<Map<String, Object>> productosAgregados; // Lista de productos agregados al pedido
 
     public PedidoFormInternal() {
+        this.pedidoController = new PedidoController();
+        this.productoController = new ProductoController();
+        this.productosMap = new HashMap<>();
+        this.productosData = new HashMap<>();
+        this.productosAgregados = new ArrayList<>();
 
         setTitle("Nuevo Pedido");
         setClosable(true);
@@ -87,7 +115,7 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
         JLabel lblDestino = new JLabel("Cliente o Destino");
         lblDestino.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
-        JTextField txtDestino = new JTextField();
+        txtDestino = new JTextField();
         txtDestino.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
 
         cardDestino.add(lblDestino);
@@ -113,10 +141,11 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
         productRow.setBackground(Color.WHITE);
         productRow.setLayout(new BoxLayout(productRow, BoxLayout.X_AXIS));
 
-        JTextField txtProducto = new JTextField();
-        txtProducto.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        comboProducto = new JComboBox<>();
+        comboProducto.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        cargarProductos();
 
-        JTextField txtCantidad = new JTextField();
+        txtCantidad = new JTextField();
         txtCantidad.setPreferredSize(new Dimension(80, 35));
         txtCantidad.setMaximumSize(new Dimension(80, 35));
         txtCantidad.setHorizontalAlignment(JTextField.CENTER);
@@ -130,8 +159,11 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
         btnAdd.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnAdd.setPreferredSize(new Dimension(40, 35));
         btnAdd.setMaximumSize(new Dimension(40, 35));
+        
+        // Evento para agregar producto a la tabla
+        btnAdd.addActionListener(e -> agregarProductoATabla());
 
-        productRow.add(txtProducto);
+        productRow.add(comboProducto);
         productRow.add(Box.createHorizontalStrut(10));
         productRow.add(txtCantidad);
         productRow.add(Box.createHorizontalStrut(10));
@@ -146,10 +178,15 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
 
         // ==== TABLA DE PRODUCTOS AGREGADOS ====
 
-        String[] columnNames = { "Producto", "Cantidad" };
-        Object[][] data = {}; // vacío, solo UI
-
-        JTable table = new JTable(data, columnNames);
+        String[] columnNames = { "Producto", "Cantidad", "Acción" };
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 2; // Solo la columna de acción es editable
+            }
+        };
+        
+        table = new JTable(tableModel);
         table.setRowHeight(30);
 
         // Cabecera gris
@@ -173,6 +210,12 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
             }
         });
 
+        // Agregar botón de eliminar en cada fila
+        TableCellRenderer buttonRenderer = new ButtonRenderer();
+        TableCellEditor buttonEditor = new ButtonEditor(new JCheckBox());
+        table.getColumn("Acción").setCellRenderer(buttonRenderer);
+        table.getColumn("Acción").setCellEditor(buttonEditor);
+        
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(new Color(230, 230, 230), 1, true));
 
@@ -180,6 +223,225 @@ public class PedidoFormInternal extends javax.swing.JInternalFrame {
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         
+        // Evento para crear pedido
+        btnCrear.addActionListener(e -> crearPedido());
+    }
+    
+    private void cargarProductos() {
+        try {
+            List<Productos> productos = productoController.listarProductos();
+            comboProducto.removeAllItems();
+            comboProducto.addItem("Selecciona un producto");
+            productosMap.clear();
+            productosData.clear();
+            
+            if (productos != null && !productos.isEmpty()) {
+                for (Productos p : productos) {
+                    String nombreCompleto = p.getNombre() + " (Stock: " + p.getStock_actual() + ")";
+                    comboProducto.addItem(nombreCompleto);
+                    productosMap.put(nombreCompleto, p.getProductoId());
+                    productosData.put(p.getProductoId(), p);
+                }
+            } else {
+                comboProducto.addItem("No hay productos registrados");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error al cargar productos: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            comboProducto.addItem("Error al cargar");
+        }
+    }
+    
+    private void agregarProductoATabla() {
+        String productoSeleccionado = (String) comboProducto.getSelectedItem();
+        
+        if (productoSeleccionado == null || productoSeleccionado.equals("Selecciona un producto") || 
+            productoSeleccionado.equals("No hay productos registrados") || 
+            productoSeleccionado.equals("Error al cargar")) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor selecciona un producto válido", 
+                "Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String cantidadStr = txtCantidad.getText().trim();
+        if (cantidadStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor ingresa una cantidad", 
+                "Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        try {
+            int cantidad = Integer.parseInt(cantidadStr);
+            if (cantidad <= 0) {
+                JOptionPane.showMessageDialog(this, 
+                    "La cantidad debe ser mayor a 0", 
+                    "Error", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            String productoId = productosMap.get(productoSeleccionado);
+            Productos producto = productosData.get(productoId);
+            
+            if (producto.getStock_actual() < cantidad) {
+                JOptionPane.showMessageDialog(this, 
+                    "Stock insuficiente. Disponible: " + producto.getStock_actual(), 
+                    "Error", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            // Agregar a la tabla
+            String nombreProducto = producto.getNombre();
+            tableModel.addRow(new Object[]{nombreProducto, cantidad, "Eliminar"});
+            
+            // Guardar en la lista de productos agregados
+            Map<String, Object> item = new HashMap<>();
+            item.put("productoId", productoId);
+            item.put("nombre", nombreProducto);
+            item.put("cantidad", cantidad);
+            productosAgregados.add(item);
+            
+            // Limpiar campos
+            txtCantidad.setText("");
+            comboProducto.setSelectedIndex(0);
+            
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "La cantidad debe ser un número válido", 
+                "Error", 
+                JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    private void crearPedido() {
+        // Validar cliente
+        String cliente = txtDestino.getText().trim();
+        if (cliente.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor ingresa el nombre del cliente", 
+                "Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validar que haya productos agregados
+        if (productosAgregados.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor agrega al menos un producto al pedido", 
+                "Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Crear un pedido por cada producto (o podrías modificar para crear un solo pedido con múltiples productos)
+        // Por ahora, crearemos un pedido por cada producto como está diseñado
+        boolean todosExitosos = true;
+        int exitosos = 0;
+        
+        for (Map<String, Object> item : productosAgregados) {
+            String productoId = (String) item.get("productoId");
+            int cantidad = (Integer) item.get("cantidad");
+            
+            boolean exito = pedidoController.registrarPedido(productoId, cliente, cantidad);
+            if (exito) {
+                exitosos++;
+            } else {
+                todosExitosos = false;
+            }
+        }
+        
+        if (todosExitosos) {
+            JOptionPane.showMessageDialog(this, 
+                "Pedido(s) creado(s) exitosamente. Total: " + exitosos, 
+                "Éxito", 
+                JOptionPane.INFORMATION_MESSAGE);
+            dispose(); // Cerrar el formulario
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Se crearon " + exitosos + " de " + productosAgregados.size() + " pedidos. " +
+                "Revisa los errores anteriores.", 
+                "Advertencia", 
+                JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    // Clases auxiliares para el botón de eliminar en la tabla
+    class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+            setText("Eliminar");
+            setBackground(new Color(220, 53, 69));
+            setForeground(Color.WHITE);
+            setBorder(null);
+            setFocusPainted(false);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            return this;
+        }
+    }
+
+    class ButtonEditor extends DefaultCellEditor {
+        protected JButton button;
+        private String label;
+        private boolean isPushed;
+        private int row;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            label = (value == null) ? "Eliminar" : value.toString();
+            button.setText(label);
+            button.setBackground(new Color(220, 53, 69));
+            button.setForeground(Color.WHITE);
+            isPushed = true;
+            this.row = row;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                // Eliminar la fila
+                int confirm = JOptionPane.showConfirmDialog(
+                    PedidoFormInternal.this,
+                    "¿Deseas eliminar este producto del pedido?",
+                    "Confirmar",
+                    JOptionPane.YES_NO_OPTION
+                );
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    tableModel.removeRow(row);
+                    if (row < productosAgregados.size()) {
+                        productosAgregados.remove(row);
+                    }
+                }
+            }
+            isPushed = false;
+            return label;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
     }
     
 
