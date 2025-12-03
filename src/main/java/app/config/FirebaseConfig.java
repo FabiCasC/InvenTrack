@@ -17,33 +17,55 @@ public class FirebaseConfig {
     public static boolean iniciarFirebase() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                // Intentar diferentes rutas posibles para el archivo de credenciales
-                String[] posiblesRutas = {
-                    "src/main/java/assets/firebase/firebase-credentials.json",
-                    "src/main/java/assets/firabase/firebase-credentials.json",
-                    "src/main/resources/assets/firebase/firebase-credentials.json",
+                // Primero intentar cargar desde el classpath (recursos empaquetados)
+                String[] candidatosClasspath = new String[] {
+                    "assets/firebase/firebase-credentials.json",
+                    "assets/firabase/firebase-credentials.json", // manejo del typo si existe
                     "firebase-credentials.json"
                 };
-                
+
+                InputStream credStream = null;
                 String rutaEncontrada = null;
-                for (String ruta : posiblesRutas) {
-                    try {
-                        FileInputStream test = new FileInputStream(ruta);
-                        test.close();
-                        rutaEncontrada = ruta;
+
+                for (String cp : candidatosClasspath) {
+                    credStream = FirebaseConfig.class.getClassLoader().getResourceAsStream(cp);
+                    if (credStream != null) {
+                        rutaEncontrada = "classpath:" + cp;
                         break;
-                    } catch (IOException e) {
-                        // Intentar siguiente ruta
                     }
                 }
-                
-                if (rutaEncontrada == null) {
+
+                // Si no está en el classpath, intentar rutas del sistema de archivos (desarrollo)
+                if (credStream == null) {
+                    String[] posiblesRutas = new String[] {
+                        "src/main/java/assets/firebase/firebase-credentials.json",
+                        "src/main/java/assets/firabase/firebase-credentials.json",
+                        "src/main/resources/assets/firebase/firebase-credentials.json",
+                        "src/main/resources/assets/firabase/firebase-credentials.json",
+                        "target/classes/assets/firebase/firebase-credentials.json",
+                        "target/classes/assets/firabase/firebase-credentials.json",
+                        "firebase-credentials.json"
+                    };
+
+                    for (String ruta : posiblesRutas) {
+                        try (FileInputStream test = new FileInputStream(ruta)) {
+                            // si abre, lo usamos
+                            rutaEncontrada = ruta;
+                            credStream = new FileInputStream(ruta);
+                            break;
+                        } catch (IOException e) {
+                            // seguir buscando
+                        }
+                    }
+                }
+
+                if (credStream == null) {
                     System.out.println("Error: No se encontró el archivo de credenciales de Firebase");
                     return false;
                 }
-                
-                try (FileInputStream credencial = new FileInputStream(rutaEncontrada)) {
-                    FirebaseOptions opciones = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(credencial)).build();
+
+                try (InputStream credInput = credStream) {
+                    FirebaseOptions opciones = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(credInput)).build();
                     FirebaseApp.initializeApp(opciones);
                     firestore = FirestoreClient.getFirestore();
                 }

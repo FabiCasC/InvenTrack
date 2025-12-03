@@ -1,4 +1,4 @@
-package app.model.estructuras;
+package app.model.algoritmos;
 
 // Definición del Nodo creado por Fabiana
 class NodoLista<T> {
